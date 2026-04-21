@@ -66,7 +66,19 @@ final class AppCoordinator: NSObject, ObservableObject {
     func showTrello() {
         guard let petWindow else { return }
         updatePetMode(.hovering)
-        let panelWindow = panelWindow ?? PanelWindow(rootView: TrelloPanelView())
+
+        if let panelWindow {
+            self.panelWindow = panelWindow
+            panelWindow.show(anchoredTo: petWindow.frame)
+            startOutsideClickMonitoring()
+            return
+        }
+
+        let panelWindow = PanelWindow(rootView: TrelloPanelView()) { [weak self] in
+            Task { @MainActor in
+                self?.handlePanelWindowClosed()
+            }
+        }
         self.panelWindow = panelWindow
         panelWindow.show(anchoredTo: petWindow.frame)
         startOutsideClickMonitoring()
@@ -211,6 +223,13 @@ final class AppCoordinator: NSObject, ObservableObject {
             }
         }
         outsideClickMonitor?.start()
+    }
+
+    private func handlePanelWindowClosed() {
+        outsideClickMonitor?.stop()
+        outsideClickMonitor = nil
+        panelWindow = nil
+        resetPetPosition()
     }
 
     private func enterAgentMode() {

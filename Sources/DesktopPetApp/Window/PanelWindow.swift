@@ -2,8 +2,11 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class PanelWindow: NSPanel {
-    init(rootView: TrelloPanelView) {
+final class PanelWindow: NSPanel, NSWindowDelegate {
+    private let onClose: () -> Void
+
+    init(rootView: TrelloPanelView, onClose: @escaping () -> Void = {}) {
+        self.onClose = onClose
         super.init(
             contentRect: CGRect(origin: .zero, size: AppConstants.panelSize),
             styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
@@ -17,6 +20,7 @@ final class PanelWindow: NSPanel {
         level = .floating
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         contentView = NSHostingView(rootView: rootView)
+        delegate = self
     }
 
     func show(anchoredTo petFrame: CGRect) {
@@ -27,5 +31,9 @@ final class PanelWindow: NSPanel {
         setFrameOrigin(origin)
         makeKeyAndOrderFront(nil)
         NSApplication.shared.activate(ignoringOtherApps: true)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        onClose()
     }
 }
