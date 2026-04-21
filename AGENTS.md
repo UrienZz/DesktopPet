@@ -1,0 +1,12 @@
+## AGENTS约束
+- 提案和回复内容尽量使用中文
+
+## 提交说明
+- 提交需原子化，使用格式 `feat|fix|chore|refactor|docs(scope): 中文描述`。
+- 从当前仓库既有 `git log` 看，描述部分以中文为主；**后续所有 commit message 的描述必须使用中文**，不要再写英文描述。
+- `type` 使用英文小写，`scope` 使用英文小写模块名或领域名；冒号后为中文短句，聚焦“做了什么”，避免空泛表述。
+- 推荐长度控制在一行内，优先写单一动作，不要把多个不相关改动揉进同一条提交信息。
+- 示例：
+    - `fix(dingtalk): 复用重试卡片并补齐失败收尾内容`
+    - `refactor(orchestration): 拆分工具配置并收敛续链逻辑`
+    - `docs(openspec): 归档 diagnosis evidence loop 变更`
