@@ -56,7 +56,7 @@ final class PetRuntimeController {
         )
 
         if currentPosition.y <= bottomBoundary {
-            currentMode = .standing
+            currentMode = .bottomIdle
             pendingLandingPosition = nil
             currentPosition = CGPoint(x: clampedX, y: screenFrame.minY + AppConstants.defaultBottomInset)
             return
@@ -94,7 +94,7 @@ final class PetRuntimeController {
         }
 
         currentPosition = landingPosition
-        currentMode = .standing
+        currentMode = .bottomIdle
         pendingLandingPosition = nil
     }
 

@@ -110,6 +110,9 @@ final class PetRenderView: NSView {
         let deltaY = currentPoint.y - mouseDownScreenPoint.y
 
         if hypot(deltaX, deltaY) > 2 {
+            if !isDragging {
+                runtimeMode = Self.dragRuntimeMode(for: pet, currentMode: runtimeMode)
+            }
             isDragging = true
         }
 
@@ -180,6 +183,10 @@ final class PetRenderView: NSView {
             x: startWindowOrigin.x + (currentMouseScreenPoint.x - mouseDownScreenPoint.x),
             y: startWindowOrigin.y + (currentMouseScreenPoint.y - mouseDownScreenPoint.y)
         )
+    }
+
+    static func dragRuntimeMode(for pet: PetDefinition, currentMode: PetRuntimeMode) -> PetRuntimeMode {
+        pet.states["drag"] != nil ? .dragging : currentMode
     }
 
     @objc

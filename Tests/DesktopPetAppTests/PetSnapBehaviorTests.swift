@@ -11,7 +11,7 @@ func 松手到底边时优先吸附到底边站立() throws {
     controller.moveDraggedPet(to: CGPoint(x: 40, y: 10))
     controller.handleDrop(screenFrame: screen, petSize: petSize)
 
-    #expect(controller.currentMode == .standing)
+    #expect(controller.currentMode == .bottomIdle)
     #expect(abs(controller.currentPosition.y - screen.minY) < 0.001)
 }
 
@@ -54,7 +54,7 @@ func 顶部松手时先下落再落地站立() throws {
 
     controller.completeFallIfNeeded()
 
-    #expect(controller.currentMode == .standing)
+    #expect(controller.currentMode == .bottomIdle)
     #expect(abs(controller.currentPosition.y - screen.minY) < 0.001)
 }
 
@@ -71,7 +71,7 @@ func 中间区域松手时自然下落到底边站立() throws {
 
     controller.completeFallIfNeeded()
 
-    #expect(controller.currentMode == .standing)
+    #expect(controller.currentMode == .bottomIdle)
     #expect(abs(controller.currentPosition.y - screen.minY) < 0.001)
 }
 

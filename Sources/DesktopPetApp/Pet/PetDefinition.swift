@@ -43,6 +43,10 @@ struct PetDefinition: Codable, Equatable, Sendable {
         switch runtimeMode {
         case .climbLeft, .climbRight:
             return states["climb"] != nil ? "climb" : preferredStandingStateName
+        case .bottomIdle:
+            return states["sit"] != nil ? "sit" : preferredStandingStateName
+        case .dragging:
+            return states["drag"] != nil ? "drag" : preferredStandingStateName
         case .standing, .hovering:
             return preferredStandingStateName
         case .falling:
