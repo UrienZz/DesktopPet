@@ -5,11 +5,14 @@ struct SizeControlView: View {
     let onChangeScale: (Double) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            LabeledContent("缩放比例") {
-                Text(scale.formatted(.number.precision(.fractionLength(2))))
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("缩放比例")
+                    .font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Text("\(Int((scale * 100).rounded()))%")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
                     .monospacedDigit()
-                    .foregroundStyle(.secondary)
             }
 
             Slider(
@@ -20,8 +23,16 @@ struct SizeControlView: View {
                 in: 0.3...1.4
             )
 
+            HStack {
+                Text("30%")
+                Spacer()
+                Text("140%")
+            }
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(.secondary)
+
             Text("调整后会即时同步到桌面宠物与预览区域。")
-                .font(.footnote)
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
         }
     }

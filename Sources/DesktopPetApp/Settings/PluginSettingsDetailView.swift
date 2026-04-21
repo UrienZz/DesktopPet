@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import AppKit
 
 struct PluginSettingsDetailView: View {
     @ObservedObject var coordinator: AppCoordinator
@@ -12,11 +13,28 @@ struct PluginSettingsDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                SettingsDetailHeader(title: "插件", subtitle: "管理网页插件、拖拽排序，并配置点击宠物后展开的面板内容。")
+            VStack(alignment: .leading, spacing: 24) {
+                SettingsHeroCard(
+                    eyebrow: "Plugin Workspace",
+                    title: "插件",
+                    subtitle: "管理网页插件、拖拽排序，并配置点击宠物后展开的面板内容。",
+                    accessory: {
+                        VStack(alignment: .leading, spacing: 10) {
+                            SettingsInfoPill(label: "插件总数", value: "\(coordinator.plugins.count)")
+                            SettingsInfoPill(label: "已启用", value: "\(coordinator.plugins.filter(\.isEnabled).count)")
+                        }
+                    },
+                    actions: {
+                        Button("新增插件", action: coordinator.addPlugin)
+                            .buttonStyle(SettingsActionButtonStyle(tint: .accentColor, graysWhenInactive: true))
+                    }
+                )
 
                 HStack(alignment: .top, spacing: 20) {
-                    SettingsSectionCard(title: "插件列表") {
+                    SettingsSectionCard(
+                        title: "插件列表",
+                        subtitle: "左侧用于选择与拖拽排序，支持 hover 高亮与手型提示。"
+                    ) {
                         PluginListView(
                             plugins: coordinator.plugins,
                             selectedPluginID: coordinator.selectedPluginID,
@@ -26,9 +44,13 @@ struct PluginSettingsDetailView: View {
                             onAdd: coordinator.addPlugin
                         )
                     }
-                    .frame(width: 320)
+                    .frame(width: 340)
 
-                    SettingsSectionCard(title: "插件配置") {
+                    SettingsSectionCard(
+                        title: "插件配置",
+                        subtitle: "配置名称、网址、图标与启用状态。",
+                        prominence: .featured
+                    ) {
                         PluginEditorView(
                             hasSelection: coordinator.selectedPlugin != nil,
                             draftName: $draftName,
@@ -43,7 +65,7 @@ struct PluginSettingsDetailView: View {
                     .frame(maxWidth: .infinity)
                 }
             }
-            .padding(24)
+            .padding(28)
         }
         .scrollIndicators(.visible)
         .onAppear(perform: syncDraftFromSelection)
@@ -98,7 +120,7 @@ private struct PluginListView: View {
                         plugin: plugin,
                         isSelected: plugin.id == selectedPluginID
                     )
-                    .onTapGesture {
+                    .onSelect {
                         onSelect(plugin.id)
                     }
                     .onDrag {
@@ -117,7 +139,7 @@ private struct PluginListView: View {
             }
 
             Button("新增插件", action: onAdd)
-                .buttonStyle(PluginActionButtonStyle(tint: .accentColor, graysWhenInactive: true))
+                .buttonStyle(SettingsActionButtonStyle(tint: .accentColor, graysWhenInactive: true))
         }
     }
 }
@@ -126,40 +148,85 @@ private struct PluginRowView: View {
     let plugin: PluginConfiguration
     let isSelected: Bool
 
+    @State private var isHovered = false
+    @State private var isPointerActive = false
+
+    private var appearance: PluginSidebarRowAppearance {
+        PluginSidebarRowAppearance.resolve(
+            isSelected: isSelected,
+            isHovered: isHovered,
+            isPressed: false
+        )
+    }
+
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "line.3.horizontal")
-                .foregroundStyle(.secondary)
-                .frame(width: 18)
+        Button(action: {}) {
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.accentColor.opacity(appearance.leadingIndicatorOpacity))
+                    .frame(width: 4, height: 28)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(plugin.name)
-                    .font(.headline)
-                Text(plugin.isEnabled ? "已启用" : "已禁用")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.accentColor.opacity(appearance.iconTileOpacity))
+                    .frame(width: 30, height: 30)
+                    .overlay {
+                        Image(systemName: "line.3.horizontal")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(.secondary)
+                    }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(plugin.name)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    Text(plugin.isEnabled ? "已启用" : "已禁用")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(plugin.isEnabled ? Color.accentColor : .secondary)
+                }
+
+                Spacer()
+
+                if !plugin.iconName.isEmpty {
+                    Image(systemName: plugin.iconName)
+                        .foregroundStyle(isSelected ? Color.accentColor : .secondary.opacity(isHovered ? 0.84 : 0.66))
+                }
             }
-
-            Spacer()
-
-            if !plugin.iconName.isEmpty {
-                Image(systemName: plugin.iconName)
-                    .foregroundStyle(.secondary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 11)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.accentColor.opacity(appearance.backgroundOpacity))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.accentColor.opacity(appearance.borderOpacity), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(appearance.shadowOpacity), radius: isHovered ? 10 : 6, y: isHovered ? 5 : 3)
+        }
+        .buttonStyle(PluginSettingsRowButtonStyle(isSelected: isSelected, isHovered: isHovered))
+        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .onHover(perform: updateHoverState)
+        .onDisappear {
+            if isPointerActive {
+                NSCursor.pop()
+                isPointerActive = false
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isSelected ? Color.accentColor.opacity(0.14) : Color(nsColor: .windowBackgroundColor))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(
-                    isSelected ? Color.accentColor : Color(nsColor: .quaternaryLabelColor),
-                    lineWidth: 1
-                )
-        )
+        .animation(.easeOut(duration: 0.16), value: isHovered)
+        .animation(.easeOut(duration: 0.16), value: isSelected)
+    }
+
+    private func updateHoverState(_ hovering: Bool) {
+        isHovered = hovering
+
+        if hovering {
+            guard !isPointerActive else { return }
+            NSCursor.pointingHand.push()
+            isPointerActive = true
+        } else if isPointerActive {
+            NSCursor.pop()
+            isPointerActive = false
+        }
     }
 }
 
@@ -175,7 +242,7 @@ private struct PluginEditorView: View {
 
     var body: some View {
         if hasSelection {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("插件名称")
                         .font(.subheadline.weight(.medium))
@@ -197,7 +264,11 @@ private struct PluginEditorView: View {
                         .textFieldStyle(.roundedBorder)
                 }
 
-                Toggle("启用此插件", isOn: $draftEnabled)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("启用状态")
+                        .font(.subheadline.weight(.medium))
+                    Toggle("启用此插件", isOn: $draftEnabled)
+                }
 
                 if let validationMessage {
                     Text(validationMessage)
@@ -207,9 +278,9 @@ private struct PluginEditorView: View {
 
                 HStack {
                     Button("保存", action: onSave)
-                        .buttonStyle(PluginActionButtonStyle(tint: .accentColor, graysWhenInactive: true))
+                        .buttonStyle(SettingsActionButtonStyle(tint: .accentColor, graysWhenInactive: true))
                     Button("删除", role: .destructive, action: onDelete)
-                        .buttonStyle(PluginActionButtonStyle(tint: .red, graysWhenInactive: false))
+                        .buttonStyle(SettingsActionButtonStyle(tint: .red))
                 }
 
                 Text("排序通过左侧列表中的三横杠拖拽把手完成。")
@@ -219,7 +290,7 @@ private struct PluginEditorView: View {
         } else {
             VStack(alignment: .leading, spacing: 10) {
                 Image(systemName: "puzzlepiece.extension")
-                    .font(.system(size: 24))
+                    .font(.system(size: 28))
                     .foregroundStyle(.secondary)
                 Text("请选择一个插件，或先新增插件。")
                     .foregroundStyle(.secondary)
@@ -245,29 +316,29 @@ private struct PluginRowDropDelegate: DropDelegate {
     }
 }
 
-private struct PluginActionButtonStyle: ButtonStyle {
-    @Environment(\.controlActiveState) private var controlActiveState
-
-    let tint: Color
-    let graysWhenInactive: Bool
+private struct PluginSettingsRowButtonStyle: ButtonStyle {
+    let isSelected: Bool
+    let isHovered: Bool
 
     func makeBody(configuration: Configuration) -> some View {
-        let resolvedTint = graysWhenInactive && controlActiveState == .inactive
-            ? Color(nsColor: .systemGray)
-            : tint
+        let appearance = PluginSidebarRowAppearance.resolve(
+            isSelected: isSelected,
+            isHovered: isHovered,
+            isPressed: configuration.isPressed
+        )
 
-        configuration.label
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(configuration.isPressed ? resolvedTint.opacity(0.82) : resolvedTint)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(resolvedTint.opacity(0.28), lineWidth: 1)
-            )
+        return configuration.label
+            .scaleEffect(appearance.scale)
+            .brightness(configuration.isPressed ? -0.01 : 0)
+    }
+}
+
+private extension View {
+    func onSelect(_ action: @escaping () -> Void) -> some View {
+        simultaneousGesture(
+            TapGesture().onEnded {
+                action()
+            }
+        )
     }
 }

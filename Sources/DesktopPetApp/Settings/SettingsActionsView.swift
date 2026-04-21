@@ -6,15 +6,19 @@ struct SettingsActionsView: View {
     let onQuit: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 10) {
                 Button("打开插件面板", action: onOpenPluginPanel)
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(SettingsActionButtonStyle(tint: .accentColor))
                 Button("重置宠物位置", action: onResetPosition)
-                    .buttonStyle(.bordered)
+                    .buttonStyle(SettingsActionButtonStyle(tint: .accentColor, isFilled: false))
                 Button("退出", role: .destructive, action: onQuit)
-                    .buttonStyle(.bordered)
+                    .buttonStyle(SettingsActionButtonStyle(tint: .red))
             }
+
+            Text("这些操作会直接影响当前桌面上的桌宠状态。")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
         }
     }
 }

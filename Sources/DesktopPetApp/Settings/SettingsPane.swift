@@ -33,4 +33,17 @@ enum SettingsPane: String, CaseIterable, Identifiable {
             return "info.circle.fill"
         }
     }
+
+    var sidebarSubtitle: String {
+        switch self {
+        case .pet:
+            return "宠物与动作"
+        case .plugins:
+            return "插件与展示"
+        case .appearance:
+            return "窗口与体验"
+        case .about:
+            return "版本与信息"
+        }
+    }
 }

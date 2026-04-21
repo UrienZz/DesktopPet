@@ -21,41 +21,67 @@ struct PosePreviewView: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 20) {
-            VStack(alignment: .leading, spacing: 12) {
-                LabeledContent("当前姿势") {
-                    Picker("姿势", selection: Binding(
-                        get: { selectedState },
-                        set: { onSelectState($0) }
-                    )) {
-                        ForEach(previewOptions, id: \.id) { option in
-                            Text(option.title).tag(option.id)
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .top, spacing: 14) {
+                    SettingsInfoPill(label: "当前姿势", value: currentPoseTitle)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("姿势选择")
+                            .font(.system(size: 13, weight: .semibold))
+                        Picker("姿势", selection: Binding(
+                            get: { selectedState },
+                            set: { onSelectState($0) }
+                        )) {
+                            ForEach(previewOptions, id: \.id) { option in
+                                Text(option.title).tag(option.id)
+                            }
                         }
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .pickerStyle(.menu)
-                    .frame(width: 200)
                 }
 
                 Text("左爬墙会自动使用右爬墙镜像；预览尺寸会跟随当前缩放同步调整。")
-                    .font(.footnote)
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
 
-            ZStack {
-                PetPreviewRepresentable(
-                    pet: pet,
-                    previewState: selectedState,
-                    scale: previewRenderScale
-                )
-                .frame(width: previewContentSize.width, height: previewContentSize.height)
-            }
-            .frame(width: PosePreviewLayout.cardDimension, height: PosePreviewLayout.cardDimension)
-            .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(Color(nsColor: .underPageBackgroundColor))
-            )
+            previewCard
+                .frame(maxWidth: .infinity, alignment: .center)
         }
+    }
+
+    private var currentPoseTitle: String {
+        previewOptions.first(where: { $0.id == selectedState })?.title ?? "未选择"
+    }
+
+    private var previewCard: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(nsColor: .underPageBackgroundColor),
+                            Color.white.opacity(0.92),
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.76), lineWidth: 1)
+
+            PetPreviewRepresentable(
+                pet: pet,
+                previewState: selectedState,
+                scale: previewRenderScale
+            )
+            .frame(width: previewContentSize.width, height: previewContentSize.height)
+        }
+        .frame(width: PosePreviewLayout.cardDimension, height: PosePreviewLayout.cardDimension)
+        .shadow(color: .black.opacity(0.06), radius: 18, y: 10)
     }
 }
 
