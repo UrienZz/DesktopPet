@@ -1,0 +1,43 @@
+{
+    "frameSize": 128,
+    "imageSrc": "media/Batman.png",
+    "name": "Batman",
+    "states": {
+        "climb": {
+            "frameMax": 8,
+            "spriteLine": 9
+        },
+        "crawl": {
+            "frameMax": 4,
+            "spriteLine": 6
+        },
+        "drag": {
+            "frameMax": 1,
+            "spriteLine": 7
+        },
+        "fall": {
+            "frameMax": 8,
+            "spriteLine": 8
+        },
+        "greet": {
+            "frameMax": 4,
+            "spriteLine": 4
+        },
+        "jump": {
+            "frameMax": 1,
+            "spriteLine": 7
+        },
+        "sit": {
+            "frameMax": 1,
+            "spriteLine": 3
+        },
+        "stand": {
+            "frameMax": 1,
+            "spriteLine": 1
+        },
+        "walk": {
+            "frameMax": 4,
+            "spriteLine": 2
+        }
+    }
+}
