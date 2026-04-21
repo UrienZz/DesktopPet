@@ -9,6 +9,8 @@ enum AppConstants {
     static let defaultBottomInset: Double = 0
     static let snapThreshold: Double = 96
     static let panelSize = CGSize(width: 900, height: 640)
+    static let selectedPetDefaultsKey = "selectedPetName"
+    static let petScaleDefaultsKey = "petScale"
 
     static let configDirectoryURL = Bundle.module.resourceURL!
     static let mediaDirectoryURL = Bundle.module.resourceURL!

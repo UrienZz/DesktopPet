@@ -10,10 +10,10 @@ final class PetRuntimeController {
     private(set) var currentMode: PetRuntimeMode
     private(set) var currentPosition: CGPoint
 
-    init(availablePets: [PetDefinition], initialScale: Double) {
+    init(availablePets: [PetDefinition], initialScale: Double, initialPetName: String? = nil) {
         precondition(!availablePets.isEmpty, "availablePets must not be empty")
         self.availablePets = availablePets
-        self.currentPet = availablePets[0]
+        self.currentPet = availablePets.first(where: { $0.name == initialPetName }) ?? availablePets[0]
         self.currentScale = initialScale
         self.currentMode = .climbRight
         self.currentPosition = .zero

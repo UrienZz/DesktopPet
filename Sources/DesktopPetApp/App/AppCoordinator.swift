@@ -10,6 +10,7 @@ final class AppCoordinator: NSObject, ObservableObject {
     @Published var previewStateName: String = ""
 
     private let catalogLoader = PetCatalogLoader()
+    private let preferencesStore: AppPreferencesStore
 
     private var runtimeController: PetRuntimeController?
     private var menuBarController: MenuBarController?
@@ -18,17 +19,26 @@ final class AppCoordinator: NSObject, ObservableObject {
     private var settingsWindowController: SettingsWindowController?
     private var outsideClickMonitor: OutsideClickMonitor?
 
+    init(preferencesStore: AppPreferencesStore = AppPreferencesStore()) {
+        self.preferencesStore = preferencesStore
+        super.init()
+    }
+
     func start() {
         do {
             availablePets = try catalogLoader.loadAllPets()
             guard let firstPet = availablePets.first else { return }
+            let restoredScale = preferencesStore.loadPetScale(defaultValue: AppConstants.defaultPetScale)
+            let restoredPetName = preferencesStore.loadSelectedPetName()
+            currentScale = restoredScale
 
             runtimeController = PetRuntimeController(
                 availablePets: availablePets,
-                initialScale: currentScale
+                initialScale: restoredScale,
+                initialPetName: restoredPetName
             )
-            currentPet = firstPet
-            previewStateName = firstPet.preferredStandingStateName
+            currentPet = runtimeController?.currentPet ?? firstPet
+            previewStateName = currentPet?.preferredStandingStateName ?? firstPet.preferredStandingStateName
 
             configureMainMenu()
             createMenuBarController()
@@ -110,6 +120,7 @@ final class AppCoordinator: NSObject, ObservableObject {
     func updateSelectedPet(_ petName: String) {
         guard let runtimeController else { return }
         runtimeController.selectPet(named: petName)
+        preferencesStore.saveSelectedPetName(runtimeController.currentPet.name)
         currentPet = runtimeController.currentPet
         previewStateName = runtimeController.currentPet.preferredStandingStateName
         petWindow?.renderView.pet = runtimeController.currentPet
@@ -119,6 +130,7 @@ final class AppCoordinator: NSObject, ObservableObject {
     func updateScale(_ scale: Double) {
         guard let runtimeController else { return }
         runtimeController.updateScale(scale)
+        preferencesStore.savePetScale(scale)
         currentScale = scale
         petWindow?.renderView.scaleFactor = CGFloat(scale)
         petWindow?.resizeToFitContent()
