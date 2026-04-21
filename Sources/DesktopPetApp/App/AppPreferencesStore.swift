@@ -23,4 +23,12 @@ struct AppPreferencesStore {
         let value = userDefaults.double(forKey: AppConstants.petScaleDefaultsKey)
         return value > 0 ? value : defaultValue
     }
+
+    func savePetAnimationPaused(_ isPaused: Bool) {
+        userDefaults.set(isPaused, forKey: AppConstants.petAnimationPausedDefaultsKey)
+    }
+
+    func loadPetAnimationPaused() -> Bool {
+        userDefaults.bool(forKey: AppConstants.petAnimationPausedDefaultsKey)
+    }
 }

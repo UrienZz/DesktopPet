@@ -3,10 +3,13 @@ import AppKit
 @MainActor
 final class MenuBarController {
     private let statusItem: NSStatusItem
+    private let animationMenuItem = NSMenuItem()
 
     init(
         onOpenSettings: @escaping () -> Void,
         onShowTrello: @escaping () -> Void,
+        onTogglePetAnimation: @escaping () -> Void,
+        isPetAnimationPaused: Bool,
         onResetPet: @escaping () -> Void,
         onQuit: @escaping () -> Void
     ) {
@@ -19,10 +22,29 @@ final class MenuBarController {
         let menu = NSMenu()
         menu.addItem(withTitle: "打开设置", action: nil, keyEquivalent: "").onSelect(onOpenSettings)
         menu.addItem(withTitle: "打开 Trello", action: nil, keyEquivalent: "").onSelect(onShowTrello)
+        animationMenuItem.onSelect(onTogglePetAnimation)
+        menu.addItem(animationMenuItem)
         menu.addItem(withTitle: "重置宠物位置", action: nil, keyEquivalent: "").onSelect(onResetPet)
         menu.addItem(.separator())
         menu.addItem(withTitle: "退出", action: nil, keyEquivalent: "q").onSelect(onQuit)
         statusItem.menu = menu
+        updateAnimationMenu(isPaused: isPetAnimationPaused)
+    }
+
+    func updateAnimationMenu(isPaused: Bool) {
+        animationMenuItem.title = Self.animationMenuTitle(isPaused: isPaused)
+    }
+
+    static func animationMenuTitle(isPaused: Bool) -> String {
+        isPaused ? "开启宠物动作" : "暂停宠物动作"
+    }
+
+    var menuTitlesForTesting: [String] {
+        statusItem.menu?.items.map(\.title) ?? []
+    }
+
+    var animationMenuTitleForTesting: String {
+        animationMenuItem.title
     }
 }
 

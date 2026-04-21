@@ -8,6 +8,7 @@ final class AppCoordinator: NSObject, ObservableObject {
     @Published private(set) var currentPet: PetDefinition?
     @Published var currentScale: Double = AppConstants.defaultPetScale
     @Published var previewStateName: String = ""
+    @Published private(set) var isPetAnimationPaused = false
 
     private let catalogLoader = PetCatalogLoader()
     private let preferencesStore: AppPreferencesStore
@@ -30,7 +31,9 @@ final class AppCoordinator: NSObject, ObservableObject {
             guard let firstPet = availablePets.first else { return }
             let restoredScale = preferencesStore.loadPetScale(defaultValue: AppConstants.defaultPetScale)
             let restoredPetName = preferencesStore.loadSelectedPetName()
+            let restoredAnimationPaused = preferencesStore.loadPetAnimationPaused()
             currentScale = restoredScale
+            isPetAnimationPaused = restoredAnimationPaused
 
             runtimeController = PetRuntimeController(
                 availablePets: availablePets,
@@ -141,6 +144,13 @@ final class AppCoordinator: NSObject, ObservableObject {
         previewStateName = stateName
     }
 
+    func togglePetAnimationPaused() {
+        isPetAnimationPaused.toggle()
+        preferencesStore.savePetAnimationPaused(isPetAnimationPaused)
+        petWindow?.renderView.isAnimationPaused = isPetAnimationPaused
+        menuBarController?.updateAnimationMenu(isPaused: isPetAnimationPaused)
+    }
+
     func handlePetDragEnded(windowOrigin: CGPoint) {
         guard
             let runtimeController,
@@ -174,6 +184,8 @@ final class AppCoordinator: NSObject, ObservableObject {
         menuBarController = MenuBarController(
             onOpenSettings: { [weak self] in self?.openSettings() },
             onShowTrello: { [weak self] in self?.showTrello() },
+            onTogglePetAnimation: { [weak self] in self?.togglePetAnimationPaused() },
+            isPetAnimationPaused: isPetAnimationPaused,
             onResetPet: { [weak self] in self?.resetPetPosition() },
             onQuit: { NSApplication.shared.terminate(nil) }
         )
@@ -187,6 +199,7 @@ final class AppCoordinator: NSObject, ObservableObject {
             runtimeMode: runtimeController.currentMode,
             scaleFactor: CGFloat(currentScale)
         )
+        renderView.isAnimationPaused = isPetAnimationPaused
         renderView.onTap = { [weak self] in
             Task { @MainActor in
                 self?.showTrello()

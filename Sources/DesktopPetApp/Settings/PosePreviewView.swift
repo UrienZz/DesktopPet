@@ -6,12 +6,18 @@ struct PosePreviewView: View {
     let scale: Double
     let onSelectState: (String) -> Void
 
-    private var previewStates: [String] {
-        let base = pet.availableStateNames
-        if base.contains("climb"), !base.contains("climbLeft") {
-            return ["climbLeft"] + base
-        }
-        return base
+    private var previewOptions: [PosePreviewOption] {
+        PosePreviewCatalog.options(for: pet)
+    }
+
+    private var previewContentSize: CGSize {
+        (try? PosePreviewLayout.contentSize(for: pet, selectedScale: scale))
+            ?? CGSize(width: 96, height: 96)
+    }
+
+    private var previewRenderScale: CGFloat {
+        (try? PosePreviewLayout.renderScale(for: pet, selectedScale: scale))
+            ?? CGFloat(scale)
     }
 
     var body: some View {
@@ -22,26 +28,29 @@ struct PosePreviewView: View {
                         get: { selectedState },
                         set: { onSelectState($0) }
                     )) {
-                        ForEach(previewStates, id: \.self) { state in
-                            Text(state).tag(state)
+                        ForEach(previewOptions, id: \.id) { option in
+                            Text(option.title).tag(option.id)
                         }
                     }
                     .pickerStyle(.menu)
                     .frame(width: 200)
                 }
 
-                Text("左爬墙会自动使用右爬墙镜像；预览区域独立于桌面宠物运行态。")
+                Text("左爬墙会自动使用右爬墙镜像；预览尺寸会跟随当前缩放同步调整。")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            PetPreviewRepresentable(
-                pet: pet,
-                previewState: selectedState,
-                scale: CGFloat(scale)
-            )
-            .frame(width: 240, height: 240)
+            ZStack {
+                PetPreviewRepresentable(
+                    pet: pet,
+                    previewState: selectedState,
+                    scale: previewRenderScale
+                )
+                .frame(width: previewContentSize.width, height: previewContentSize.height)
+            }
+            .frame(width: PosePreviewLayout.cardDimension, height: PosePreviewLayout.cardDimension)
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .fill(Color(nsColor: .underPageBackgroundColor))
@@ -56,31 +65,24 @@ private struct PetPreviewRepresentable: NSViewRepresentable {
     let scale: CGFloat
 
     func makeNSView(context: Context) -> PetRenderView {
+        let configuration = PosePreviewCatalog.renderConfiguration(for: previewState)
         let renderView = PetRenderView(
             pet: pet,
-            runtimeMode: runtimeMode(for: previewState),
+            runtimeMode: .standing,
             scaleFactor: scale
         )
         renderView.interactionEnabled = false
+        renderView.forcedStateName = configuration.stateName
+        renderView.forceMirrored = configuration.isMirrored
         return renderView
     }
 
     func updateNSView(_ nsView: PetRenderView, context: Context) {
+        let configuration = PosePreviewCatalog.renderConfiguration(for: previewState)
         nsView.pet = pet
         nsView.scaleFactor = scale
-        nsView.runtimeMode = runtimeMode(for: previewState)
-    }
-
-    private func runtimeMode(for state: String) -> PetRuntimeMode {
-        switch state {
-        case "climbLeft":
-            return .climbLeft
-        case "climb":
-            return .climbRight
-        case "fall":
-            return .falling
-        default:
-            return .standing
-        }
+        nsView.runtimeMode = .standing
+        nsView.forcedStateName = configuration.stateName
+        nsView.forceMirrored = configuration.isMirrored
     }
 }

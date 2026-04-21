@@ -10,6 +10,18 @@ final class PetRenderView: NSView {
         didSet { reloadFrames() }
     }
 
+    var forcedStateName: String? {
+        didSet { reloadFrames() }
+    }
+
+    var forceMirrored = false {
+        didSet { reloadFrames() }
+    }
+
+    var isAnimationPaused = false {
+        didSet { updateFrameAnimationTimer() }
+    }
+
     var scaleFactor: CGFloat {
         didSet {
             invalidateIntrinsicContentSize()
@@ -122,7 +134,7 @@ final class PetRenderView: NSView {
     }
 
     private func reloadFrames() {
-        frameAdvanceTimer?.invalidate()
+        invalidateFrameAnimationTimer()
         currentFrameIndex = 0
         spriteSheet = NSImage(contentsOf: pet.mediaFileURL)?
             .cgImage(forProposedRect: nil, context: nil, hints: nil)
@@ -136,9 +148,9 @@ final class PetRenderView: NSView {
             return
         }
 
-        let stateName = pet.resolvedStateName(for: runtimeMode)
+        let stateName = forcedStateName ?? pet.resolvedStateName(for: runtimeMode)
         let frameRange = (try? animator.frameRange(for: stateName)) ?? 0...0
-        isMirrored = runtimeMode == .climbLeft
+        isMirrored = forceMirrored || (forcedStateName == nil && runtimeMode == .climbLeft)
         frameImages = frameRange
             .compactMap { cropFrame(from: spriteSheet, frameIndex: $0, animator: animator) }
             .filter { !isFullyTransparent($0) }
@@ -150,18 +162,7 @@ final class PetRenderView: NSView {
                 .filter { !isFullyTransparent($0) }
         }
 
-        if frameImages.count > 1 {
-            let timer = Timer(
-                timeInterval: 1.0 / 9.0,
-                target: self,
-                selector: #selector(advanceFrame),
-                userInfo: nil,
-                repeats: true
-            )
-            RunLoop.main.add(timer, forMode: .common)
-            frameAdvanceTimer = timer
-        }
-
+        updateFrameAnimationTimer()
         invalidateIntrinsicContentSize()
         needsDisplay = true
     }
@@ -273,5 +274,33 @@ final class PetRenderView: NSView {
 
         let index = pixelY * image.bytesPerRow + pixelX * bytesPerPixel + 3
         return bytes[index] > 0
+    }
+
+    private func updateFrameAnimationTimer() {
+        invalidateFrameAnimationTimer()
+
+        guard !isAnimationPaused, frameImages.count > 1 else {
+            needsDisplay = true
+            return
+        }
+
+        let timer = Timer(
+            timeInterval: 1.0 / 9.0,
+            target: self,
+            selector: #selector(advanceFrame),
+            userInfo: nil,
+            repeats: true
+        )
+        RunLoop.main.add(timer, forMode: .common)
+        frameAdvanceTimer = timer
+    }
+
+    private func invalidateFrameAnimationTimer() {
+        frameAdvanceTimer?.invalidate()
+        frameAdvanceTimer = nil
+    }
+
+    var isFrameAnimationActiveForTesting: Bool {
+        frameAdvanceTimer != nil
     }
 }
