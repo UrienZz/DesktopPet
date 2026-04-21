@@ -10,45 +10,53 @@ struct PosePreviewView: View {
         PosePreviewCatalog.options(for: pet)
     }
 
-    private var previewContentSize: CGSize {
-        (try? PosePreviewLayout.contentSize(for: pet, selectedScale: scale))
-            ?? CGSize(width: 96, height: 96)
-    }
-
-    private var previewRenderScale: CGFloat {
-        (try? PosePreviewLayout.renderScale(for: pet, selectedScale: scale))
-            ?? CGFloat(scale)
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(alignment: .top, spacing: 14) {
-                    SettingsInfoPill(label: "当前姿势", value: currentPoseTitle)
+        GeometryReader { proxy in
+            let previewCardDimension = resolvedPreviewCardDimension(
+                availableWidth: proxy.size.width,
+                availableHeight: proxy.size.height
+            )
+            let previewContentSize = resolvedPreviewContentSize(cardDimension: previewCardDimension)
+            let previewRenderScale = resolvedPreviewRenderScale(cardDimension: previewCardDimension)
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("姿势选择")
-                            .font(.system(size: 13, weight: .semibold))
-                        Picker("姿势", selection: Binding(
-                            get: { selectedState },
-                            set: { onSelectState($0) }
-                        )) {
-                            ForEach(previewOptions, id: \.id) { option in
-                                Text(option.title).tag(option.id)
+            VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack(alignment: .top, spacing: 14) {
+                        SettingsInfoPill(label: "当前姿势", value: currentPoseTitle)
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("姿势选择")
+                                .font(.system(size: 13, weight: .semibold))
+                            Picker("姿势", selection: Binding(
+                                get: { selectedState },
+                                set: { onSelectState($0) }
+                            )) {
+                                ForEach(previewOptions, id: \.id) { option in
+                                    Text(option.title).tag(option.id)
+                                }
                             }
+                            .pickerStyle(.menu)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .pickerStyle(.menu)
-                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
+
+                    Text("左爬墙会自动使用右爬墙镜像；预览尺寸会跟随当前缩放同步调整。")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
                 }
 
-                Text("左爬墙会自动使用右爬墙镜像；预览尺寸会跟随当前缩放同步调整。")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
+                Spacer(minLength: 0)
 
-            previewCard
+                previewCard(
+                    cardDimension: previewCardDimension,
+                    previewContentSize: previewContentSize,
+                    previewRenderScale: previewRenderScale
+                )
                 .frame(maxWidth: .infinity, alignment: .center)
+
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
 
@@ -56,7 +64,38 @@ struct PosePreviewView: View {
         previewOptions.first(where: { $0.id == selectedState })?.title ?? "未选择"
     }
 
-    private var previewCard: some View {
+    private func resolvedPreviewCardDimension(availableWidth: CGFloat, availableHeight: CGFloat) -> CGFloat {
+        let contentHeightBudget = max(availableHeight - 116, PosePreviewLayout.minCardDimension)
+        let contentWidthBudget = max(availableWidth - 24, PosePreviewLayout.minCardDimension)
+        return PosePreviewLayout.fittedCardDimension(
+            availableWidth: contentWidthBudget,
+            availableHeight: contentHeightBudget
+        )
+    }
+
+    private func resolvedPreviewRenderScale(cardDimension: CGFloat) -> CGFloat {
+        let contentMaxDimension = PosePreviewLayout.contentMaxDimension(for: cardDimension)
+        return (try? PosePreviewLayout.renderScale(
+            for: pet,
+            selectedScale: scale,
+            maxDimension: contentMaxDimension
+        )) ?? CGFloat(scale)
+    }
+
+    private func resolvedPreviewContentSize(cardDimension: CGFloat) -> CGSize {
+        let contentMaxDimension = PosePreviewLayout.contentMaxDimension(for: cardDimension)
+        return (try? PosePreviewLayout.contentSize(
+            for: pet,
+            selectedScale: scale,
+            maxDimension: contentMaxDimension
+        )) ?? CGSize(width: 96, height: 96)
+    }
+
+    private func previewCard(
+        cardDimension: CGFloat,
+        previewContentSize: CGSize,
+        previewRenderScale: CGFloat
+    ) -> some View {
         ZStack {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(
@@ -80,7 +119,7 @@ struct PosePreviewView: View {
             )
             .frame(width: previewContentSize.width, height: previewContentSize.height)
         }
-        .frame(width: PosePreviewLayout.cardDimension, height: PosePreviewLayout.cardDimension)
+        .frame(width: cardDimension, height: cardDimension)
         .shadow(color: .black.opacity(0.06), radius: 18, y: 10)
     }
 }

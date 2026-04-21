@@ -47,3 +47,12 @@ func 姿势预览尺寸应跟随当前缩放并限制最大显示尺寸() throws
     #expect(medium == CGSize(width: 115.2, height: 115.2))
     #expect(large == CGSize(width: 208, height: 208))
 }
+
+@Test
+func 姿势预览画布尺寸应受可用空间约束() {
+    let compact = PosePreviewLayout.fittedCardDimension(availableWidth: 280, availableHeight: 188)
+    let roomy = PosePreviewLayout.fittedCardDimension(availableWidth: 420, availableHeight: 360)
+
+    #expect(compact == 188)
+    #expect(roomy == PosePreviewLayout.cardDimension)
+}

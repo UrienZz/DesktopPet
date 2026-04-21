@@ -67,6 +67,7 @@ enum PosePreviewCatalog {
 enum PosePreviewLayout {
     static let cardDimension: CGFloat = 240
     static let contentMaxDimension: CGFloat = 208
+    static let minCardDimension: CGFloat = 160
 
     static func renderScale(
         for pet: PetDefinition,
@@ -93,5 +94,14 @@ enum PosePreviewLayout {
             width: CGFloat(animator.frameWidth) * resolvedScale,
             height: CGFloat(animator.frameHeight) * resolvedScale
         )
+    }
+
+    static func fittedCardDimension(availableWidth: CGFloat, availableHeight: CGFloat) -> CGFloat {
+        let availableDimension = min(availableWidth, availableHeight)
+        return max(minCardDimension, min(cardDimension, availableDimension))
+    }
+
+    static func contentMaxDimension(for cardDimension: CGFloat) -> CGFloat {
+        max(96, cardDimension - 32)
     }
 }

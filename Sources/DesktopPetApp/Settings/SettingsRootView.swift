@@ -98,6 +98,7 @@ struct SettingsRootView: View {
 
 private struct PetSettingsDetailView: View {
     @ObservedObject var coordinator: AppCoordinator
+    @State private var leftColumnHeight: CGFloat = 0
 
     var body: some View {
         ScrollView {
@@ -123,6 +124,10 @@ private struct PetSettingsDetailView: View {
                                 .buttonStyle(SettingsActionButtonStyle(tint: .accentColor))
                             Button("重置位置", action: coordinator.resetPetPosition)
                                 .buttonStyle(SettingsActionButtonStyle(tint: .accentColor, isFilled: false))
+                            Button("退出", role: .destructive) {
+                                NSApplication.shared.terminate(nil)
+                            }
+                            .buttonStyle(SettingsActionButtonStyle(tint: .red))
                         }
                     }
                 )
@@ -152,6 +157,12 @@ private struct PetSettingsDetailView: View {
                             }
                         }
                         .frame(width: 320)
+                        .background(
+                            GeometryReader { proxy in
+                                Color.clear
+                                    .preference(key: PetSettingsLeftColumnHeightPreferenceKey.self, value: proxy.size.height)
+                            }
+                        )
 
                         SettingsSectionCard(
                             title: "姿势预览",
@@ -166,23 +177,24 @@ private struct PetSettingsDetailView: View {
                             )
                         }
                         .frame(maxWidth: .infinity)
+                        .frame(minHeight: leftColumnHeight > 0 ? leftColumnHeight : nil)
                     }
-                }
-
-                SettingsSectionCard(
-                    title: "动作",
-                    subtitle: "常用操作集中放在这里，保持顺手且统一。"
-                ) {
-                    SettingsActionsView(
-                        onOpenPluginPanel: coordinator.openPluginPanel,
-                        onResetPosition: coordinator.resetPetPosition,
-                        onQuit: { NSApplication.shared.terminate(nil) }
-                    )
+                    .onPreferenceChange(PetSettingsLeftColumnHeightPreferenceKey.self) { value in
+                        leftColumnHeight = value
+                    }
                 }
             }
             .padding(28)
         }
         .scrollIndicators(.visible)
+    }
+}
+
+private struct PetSettingsLeftColumnHeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat { 0 }
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 
