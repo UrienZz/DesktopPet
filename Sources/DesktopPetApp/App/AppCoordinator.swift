@@ -4,6 +4,11 @@ import SwiftUI
 
 @MainActor
 final class AppCoordinator: NSObject, ObservableObject {
+    private struct PetAnchorState {
+        let position: CGPoint
+        let mode: PetRuntimeMode
+    }
+
     @Published private(set) var availablePets: [PetDefinition] = []
     @Published private(set) var currentPet: PetDefinition?
     @Published var currentScale: Double = AppConstants.defaultPetScale
@@ -19,6 +24,7 @@ final class AppCoordinator: NSObject, ObservableObject {
     private var panelWindow: PanelWindow?
     private var settingsWindowController: SettingsWindowController?
     private var outsideClickMonitor: OutsideClickMonitor?
+    private var trelloReturnState: PetAnchorState?
 
     init(preferencesStore: AppPreferencesStore = AppPreferencesStore()) {
         self.preferencesStore = preferencesStore
@@ -77,7 +83,14 @@ final class AppCoordinator: NSObject, ObservableObject {
     }
 
     func showTrello() {
-        guard let petWindow else { return }
+        guard let petWindow, let runtimeController else { return }
+
+        if trelloReturnState == nil {
+            trelloReturnState = PetAnchorState(
+                position: runtimeController.currentPosition,
+                mode: runtimeController.currentMode
+            )
+        }
         updatePetMode(.hovering)
 
         if let panelWindow {
@@ -97,11 +110,11 @@ final class AppCoordinator: NSObject, ObservableObject {
         startOutsideClickMonitoring()
     }
 
-    func hideTrelloAndResetPet() {
+    func hideTrelloAndRestorePet() {
         panelWindow?.orderOut(nil)
         outsideClickMonitor?.stop()
         outsideClickMonitor = nil
-        resetPetPosition()
+        restorePetAfterTrelloClose()
     }
 
     func resetPetPosition() {
@@ -174,7 +187,7 @@ final class AppCoordinator: NSObject, ObservableObject {
 
     func performWindowClose() {
         if panelWindow?.isVisible == true {
-            hideTrelloAndResetPet()
+            hideTrelloAndRestorePet()
         } else {
             settingsWindowController?.close()
         }
@@ -244,7 +257,7 @@ final class AppCoordinator: NSObject, ObservableObject {
             panelWindow: panelWindow
         ) { [weak self] in
             Task { @MainActor in
-                self?.hideTrelloAndResetPet()
+                self?.hideTrelloAndRestorePet()
             }
         }
         outsideClickMonitor?.start()
@@ -254,7 +267,33 @@ final class AppCoordinator: NSObject, ObservableObject {
         outsideClickMonitor?.stop()
         outsideClickMonitor = nil
         panelWindow = nil
+        restorePetAfterTrelloClose()
+    }
+
+    private func restorePetAfterTrelloClose() {
+        guard let runtimeController else { return }
+
+        if let trelloReturnState {
+            runtimeController.moveDraggedPet(to: trelloReturnState.position)
+            runtimeController.overrideMode(trelloReturnState.mode)
+            self.trelloReturnState = nil
+            applyRuntimePositionAndMode()
+            return
+        }
+
         resetPetPosition()
+    }
+
+    var currentPetPositionForTesting: CGPoint {
+        runtimeController?.currentPosition ?? .zero
+    }
+
+    var currentPetModeForTesting: PetRuntimeMode {
+        runtimeController?.currentMode ?? .climbRight
+    }
+
+    func simulatePanelWindowClosedForTesting() {
+        handlePanelWindowClosed()
     }
 
     private func enterAgentMode() {
