@@ -3,11 +3,15 @@ import SwiftUI
 struct PetPickerView: View {
     let pets: [PetDefinition]
     let selectedPetName: String
+    let sourceTitle: String
     let onSelect: (String) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SettingsInfoPill(label: "当前选择", value: selectedPetName)
+            HStack(spacing: 12) {
+                SettingsInfoPill(label: "当前选择", value: selectedPetName)
+                SettingsInfoPill(label: "来源", value: sourceTitle)
+            }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("宠物选择")

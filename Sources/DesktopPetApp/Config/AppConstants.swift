@@ -17,6 +17,12 @@ enum AppConstants {
     static let petAnimationPausedDefaultsKey = "petAnimationPaused"
     static let pluginConfigurationsDefaultsKey = "pluginConfigurations"
 
+    static let applicationSupportDirectoryURL = FileManager.default.urls(
+        for: .applicationSupportDirectory,
+        in: .userDomainMask
+    ).first!.appendingPathComponent("DesktopPetApp", isDirectory: true)
+    static let importedPetsDirectoryURL = applicationSupportDirectoryURL.appendingPathComponent("ImportedPets", isDirectory: true)
+
     static let configDirectoryURL = Bundle.module.resourceURL!
     static let mediaDirectoryURL = Bundle.module.resourceURL!
 }

@@ -14,6 +14,9 @@ func 可解码旧项目宠物定义() throws {
     #expect(pet.frameSize == 128)
     #expect(pet.states["climb"]?.frameMax == 8)
     #expect(pet.states["stand"]?.spriteLine == 1)
+    #expect(pet.source == .bundled)
+    #expect(!pet.isImported)
+    #expect(pet.storageDirectoryURL == nil)
 }
 
 @Test

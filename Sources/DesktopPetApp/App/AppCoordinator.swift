@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import SwiftUI
+import UniformTypeIdentifiers
 
 @MainActor
 final class AppCoordinator: NSObject, ObservableObject {
@@ -14,14 +15,16 @@ final class AppCoordinator: NSObject, ObservableObject {
     @Published var currentScale: Double = AppConstants.defaultPetScale
     @Published var previewStateName: String = ""
     @Published private(set) var isPetAnimationPaused = false
+    @Published private(set) var petManagementStatus: PetManagementStatus?
     @Published private(set) var plugins: [PluginConfiguration] = []
     @Published private(set) var selectedPluginID: UUID?
     @Published private(set) var selectedPanelPluginID: UUID?
     @Published var isPluginSidebarExpanded = false
 
-    private let catalogLoader = PetCatalogLoader()
+    private let catalogLoader: PetCatalogLoader
     private let preferencesStore: AppPreferencesStore
     private let pluginStore: PluginStore
+    private let importedPetStore: ImportedPetStore
 
     private var runtimeController: PetRuntimeController?
     private var menuBarController: MenuBarController?
@@ -33,10 +36,14 @@ final class AppCoordinator: NSObject, ObservableObject {
 
     init(
         preferencesStore: AppPreferencesStore = AppPreferencesStore(),
-        pluginStore: PluginStore = PluginStore()
+        pluginStore: PluginStore = PluginStore(),
+        catalogLoader: PetCatalogLoader = PetCatalogLoader(),
+        importedPetStore: ImportedPetStore = ImportedPetStore()
     ) {
         self.preferencesStore = preferencesStore
         self.pluginStore = pluginStore
+        self.catalogLoader = catalogLoader
+        self.importedPetStore = importedPetStore
         super.init()
     }
 
@@ -265,6 +272,68 @@ final class AppCoordinator: NSObject, ObservableObject {
         menuBarController?.updateAnimationMenu(isPaused: isPetAnimationPaused)
     }
 
+    func importPetArchive() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [UTType.zip]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.title = "导入宠物"
+        panel.message = "请选择一个包含 json 配置与 png 资源的 zip 宠物包。"
+
+        guard panel.runModal() == .OK, let archiveURL = panel.url else {
+            return
+        }
+
+        do {
+            let importedPet = try importPetArchive(at: archiveURL)
+            petManagementStatus = PetManagementStatus(kind: .success, message: "已导入宠物：\(importedPet.name)")
+        } catch {
+            petManagementStatus = PetManagementStatus(kind: .error, message: "宠物包不合法，请检查 json 配置和 png 资源。")
+        }
+    }
+
+    @discardableResult
+    func importPetArchive(at archiveURL: URL) throws -> PetDefinition {
+        let importedPet = try importedPetStore.importPetArchive(from: archiveURL)
+        try reloadPetCatalog(selecting: currentPet?.name)
+        return importedPet
+    }
+
+    func deleteCurrentImportedPetWithFeedback() {
+        guard let currentPet else { return }
+        do {
+            let deletedPetName = currentPet.name
+            try deleteCurrentImportedPet()
+            petManagementStatus = PetManagementStatus(kind: .success, message: "已删除宠物：\(deletedPetName)")
+        } catch {
+            petManagementStatus = PetManagementStatus(kind: .error, message: "删除宠物失败，请稍后重试。")
+        }
+    }
+
+    func deleteCurrentImportedPet() throws {
+        guard
+            let currentPet,
+            currentPet.isImported,
+            let storageDirectoryURL = currentPet.storageDirectoryURL
+        else {
+            return
+        }
+
+        let fallbackPetName = availablePets.first(where: { !$0.isImported })?.name
+        if let fallbackPetName {
+            updateSelectedPet(fallbackPetName)
+            preferencesStore.saveSelectedPetName(fallbackPetName)
+        }
+
+        try importedPetStore.deleteImportedPet(at: storageDirectoryURL)
+        try reloadPetCatalog(selecting: fallbackPetName)
+    }
+
+    func clearPetManagementStatus() {
+        petManagementStatus = nil
+    }
+
     func handlePetDragEnded(windowOrigin: CGPoint) {
         guard
             let runtimeController,
@@ -343,6 +412,53 @@ final class AppCoordinator: NSObject, ObservableObject {
         currentScale = runtimeController.currentScale
     }
 
+    private func reloadPetCatalog(selecting preferredPetName: String?) throws {
+        let pets = try catalogLoader.loadAllPets()
+        availablePets = pets
+
+        guard let firstPet = pets.first else {
+            runtimeController = nil
+            currentPet = nil
+            return
+        }
+
+        let restoredPetName = preferredPetName ?? currentPet?.name ?? preferencesStore.loadSelectedPetName()
+        let currentPosition = runtimeController?.currentPosition
+        let currentMode = runtimeController?.currentMode
+        let currentScale = runtimeController?.currentScale ?? self.currentScale
+        let newRuntimeController = PetRuntimeController(
+            availablePets: pets,
+            initialScale: currentScale,
+            initialPetName: restoredPetName
+        )
+        if let currentPosition {
+            newRuntimeController.moveDraggedPet(to: currentPosition)
+        }
+        if let currentMode {
+            newRuntimeController.overrideMode(currentMode)
+        }
+
+        runtimeController = newRuntimeController
+        currentPet = newRuntimeController.currentPet
+        previewStateName = newRuntimeController.currentPet.preferredStandingStateName
+        self.currentScale = newRuntimeController.currentScale
+
+        guard let petWindow else { return }
+        petWindow.renderView.pet = newRuntimeController.currentPet
+        petWindow.renderView.runtimeMode = newRuntimeController.currentMode
+        petWindow.renderView.scaleFactor = CGFloat(newRuntimeController.currentScale)
+        if let currentPosition {
+            petWindow.setFrameOrigin(currentPosition)
+        } else {
+            petWindow.renderView.runtimeMode = newRuntimeController.currentMode
+            currentPet = newRuntimeController.currentPet
+            previewStateName = newRuntimeController.currentPet.preferredStandingStateName
+            if currentPet?.name == firstPet.name {
+                petWindow.renderView.pet = firstPet
+            }
+        }
+    }
+
     private func updatePetMode(_ mode: PetRuntimeMode) {
         guard let runtimeController else { return }
         runtimeController.overrideMode(mode)
@@ -402,6 +518,14 @@ final class AppCoordinator: NSObject, ObservableObject {
 
     var selectedPluginForTesting: PluginConfiguration? {
         plugins.first(where: { $0.id == selectedPluginID })
+    }
+
+    var canDeleteCurrentImportedPet: Bool {
+        currentPet?.isImported == true
+    }
+
+    var currentPetSourceDisplayTitle: String {
+        currentPet?.isImported == true ? "自定义" : "内置"
     }
 
     var selectedPlugin: PluginConfiguration? {

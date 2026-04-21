@@ -119,18 +119,36 @@ private struct PetSettingsDetailView: View {
                         }
                     },
                     actions: {
-                        HStack(spacing: 10) {
-                            Button("打开插件面板", action: coordinator.openPluginPanel)
-                                .buttonStyle(SettingsActionButtonStyle(tint: .accentColor))
-                            Button("重置位置", action: coordinator.resetPetPosition)
-                                .buttonStyle(SettingsActionButtonStyle(tint: .accentColor, isFilled: false))
-                            Button("退出", role: .destructive) {
-                                NSApplication.shared.terminate(nil)
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(spacing: 10) {
+                                Button("导入宠物", action: coordinator.importPetArchive)
+                                    .buttonStyle(SettingsActionButtonStyle(tint: .accentColor))
+                                Button("打开插件面板", action: coordinator.openPluginPanel)
+                                    .buttonStyle(SettingsActionButtonStyle(tint: .accentColor, isFilled: false))
+                                Button("重置位置", action: coordinator.resetPetPosition)
+                                    .buttonStyle(SettingsActionButtonStyle(tint: .accentColor, isFilled: false))
                             }
-                            .buttonStyle(SettingsActionButtonStyle(tint: .red))
+
+                            HStack(spacing: 10) {
+                                if coordinator.canDeleteCurrentImportedPet {
+                                    Button("删除该宠物", role: .destructive, action: coordinator.deleteCurrentImportedPetWithFeedback)
+                                        .buttonStyle(SettingsActionButtonStyle(tint: .red))
+                                }
+
+                                Button("退出", role: .destructive) {
+                                    NSApplication.shared.terminate(nil)
+                                }
+                                .buttonStyle(SettingsActionButtonStyle(tint: .red, isFilled: false))
+                            }
                         }
                     }
                 )
+
+                if let petManagementStatus = coordinator.petManagementStatus {
+                    PetManagementStatusBanner(status: petManagementStatus) {
+                        coordinator.clearPetManagementStatus()
+                    }
+                }
 
                 if let currentPet = coordinator.currentPet {
                     HStack(alignment: .top, spacing: 20) {
@@ -142,6 +160,7 @@ private struct PetSettingsDetailView: View {
                                 PetPickerView(
                                     pets: coordinator.availablePets,
                                     selectedPetName: currentPet.name,
+                                    sourceTitle: coordinator.currentPetSourceDisplayTitle,
                                     onSelect: coordinator.updateSelectedPet
                                 )
                             }
@@ -187,6 +206,39 @@ private struct PetSettingsDetailView: View {
             .padding(28)
         }
         .scrollIndicators(.visible)
+    }
+}
+
+private struct PetManagementStatusBanner: View {
+    let status: PetManagementStatus
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: status.kind == .success ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                .foregroundStyle(status.kind == .success ? Color.green : Color.red)
+
+            Text(status.message)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(.primary)
+
+            Spacer()
+
+            Button("关闭", action: onDismiss)
+                .buttonStyle(SettingsActionButtonStyle(
+                    tint: status.kind == .success ? .green : .red,
+                    isFilled: false
+                ))
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.white.opacity(0.82))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.72), lineWidth: 1)
+        )
     }
 }
 

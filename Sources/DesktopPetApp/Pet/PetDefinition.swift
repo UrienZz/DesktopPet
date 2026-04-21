@@ -1,5 +1,10 @@
 import Foundation
 
+enum PetSource: String, Codable, Equatable, Sendable {
+    case bundled
+    case imported
+}
+
 struct PetDefinition: Codable, Equatable, Sendable {
     let name: String
     let imageSource: String
@@ -9,6 +14,9 @@ struct PetDefinition: Codable, Equatable, Sendable {
     let highestFrameMax: Int?
     let totalSpriteLine: Int?
     let states: [String: PetStateDefinition]
+    var source: PetSource = .bundled
+    var resourceBaseURL: URL? = nil
+    var storageDirectoryURL: URL? = nil
 
     enum CodingKeys: String, CodingKey {
         case name
@@ -19,6 +27,10 @@ struct PetDefinition: Codable, Equatable, Sendable {
         case highestFrameMax
         case totalSpriteLine
         case states
+    }
+
+    var isImported: Bool {
+        source == .imported
     }
 
     var availableStateNames: [String] {
@@ -36,7 +48,8 @@ struct PetDefinition: Codable, Equatable, Sendable {
     }
 
     var mediaFileURL: URL {
-        AppConstants.mediaDirectoryURL.appendingPathComponent((imageSource as NSString).lastPathComponent)
+        (resourceBaseURL ?? AppConstants.mediaDirectoryURL)
+            .appendingPathComponent((imageSource as NSString).lastPathComponent)
     }
 
     func resolvedStateName(for runtimeMode: PetRuntimeMode) -> String {
