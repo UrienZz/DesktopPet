@@ -2,7 +2,7 @@ import Foundation
 
 enum SettingsPane: String, CaseIterable, Identifiable {
     case pet
-    case trello
+    case plugins
     case appearance
     case about
 
@@ -12,8 +12,8 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         switch self {
         case .pet:
             return "桌宠"
-        case .trello:
-            return "Trello"
+        case .plugins:
+            return "插件"
         case .appearance:
             return "外观"
         case .about:
@@ -25,8 +25,8 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         switch self {
         case .pet:
             return "cat.fill"
-        case .trello:
-            return "rectangle.on.rectangle.circle"
+        case .plugins:
+            return "puzzlepiece.extension"
         case .appearance:
             return "paintpalette.fill"
         case .about:

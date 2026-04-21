@@ -8,7 +8,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     init<Content: View>(rootView: Content, onClose: @escaping () -> Void) {
         self.onClose = onClose
 
-        let window = NSWindow(
+        let window = EditingShortcutWindow(
             contentRect: CGRect(x: 0, y: 0, width: 960, height: 720),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,

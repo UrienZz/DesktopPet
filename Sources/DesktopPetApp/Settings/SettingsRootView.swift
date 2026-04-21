@@ -60,8 +60,8 @@ struct SettingsRootView: View {
         switch pane {
         case .pet:
             PetSettingsDetailView(coordinator: coordinator)
-        case .trello:
-            TrelloSettingsDetailView(coordinator: coordinator)
+        case .plugins:
+            PluginSettingsDetailView(coordinator: coordinator)
         case .appearance:
             AppearanceSettingsDetailView()
         case .about:
@@ -106,41 +106,10 @@ private struct PetSettingsDetailView: View {
 
                 SettingsSectionCard(title: "动作") {
                     SettingsActionsView(
-                        onOpenTrello: coordinator.showTrello,
+                        onOpenPluginPanel: coordinator.openPluginPanel,
                         onResetPosition: coordinator.resetPetPosition,
                         onQuit: { NSApplication.shared.terminate(nil) }
                     )
-                }
-            }
-            .padding(24)
-        }
-        .scrollIndicators(.visible)
-    }
-}
-
-private struct TrelloSettingsDetailView: View {
-    @ObservedObject var coordinator: AppCoordinator
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                SettingsDetailHeader(title: "Trello", subtitle: "在应用内打开 Trello 面板，并保留网页登录状态。")
-
-                SettingsSectionCard(title: "面板") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        LabeledContent("面板地址") {
-                            Text(AppConstants.trelloBoardURL.absoluteString)
-                                .foregroundStyle(.secondary)
-                                .textSelection(.enabled)
-                        }
-
-                        Text("首次打开时可直接在内嵌面板中登录 Trello，后续复用 WebView 会话。")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-
-                        Button("打开 Trello", action: coordinator.showTrello)
-                            .buttonStyle(.borderedProminent)
-                    }
                 }
             }
             .padding(24)
@@ -186,7 +155,7 @@ private struct AboutSettingsDetailView: View {
                                 .foregroundStyle(.secondary)
                         }
                         LabeledContent("特性") {
-                            Text("单宠物、边缘吸附、Trello 面板、菜单栏入口")
+                            Text("单宠物、边缘吸附、插件面板、菜单栏入口")
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -198,7 +167,7 @@ private struct AboutSettingsDetailView: View {
     }
 }
 
-private struct SettingsDetailHeader: View {
+struct SettingsDetailHeader: View {
     let title: String
     let subtitle: String
 
@@ -212,7 +181,7 @@ private struct SettingsDetailHeader: View {
     }
 }
 
-private struct SettingsSectionCard<Content: View>: View {
+struct SettingsSectionCard<Content: View>: View {
     let title: String
     @ViewBuilder let content: Content
 

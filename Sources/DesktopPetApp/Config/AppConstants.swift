@@ -3,6 +3,9 @@ import Foundation
 enum AppConstants {
     static let appName = "DesktopPetApp"
     static let trelloBoardURL = URL(string: "https://trello.com")!
+    static let defaultPluginName = "Trello"
+    static let defaultPluginURL = trelloBoardURL
+    static let defaultPluginIconName = "tray.fill"
 
     static let defaultPetScale: Double = 0.7
     static let defaultEdgeInset: Double = 0
@@ -12,6 +15,7 @@ enum AppConstants {
     static let selectedPetDefaultsKey = "selectedPetName"
     static let petScaleDefaultsKey = "petScale"
     static let petAnimationPausedDefaultsKey = "petAnimationPaused"
+    static let pluginConfigurationsDefaultsKey = "pluginConfigurations"
 
     static let configDirectoryURL = Bundle.module.resourceURL!
     static let mediaDirectoryURL = Bundle.module.resourceURL!

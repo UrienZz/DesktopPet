@@ -14,9 +14,14 @@ final class AppCoordinator: NSObject, ObservableObject {
     @Published var currentScale: Double = AppConstants.defaultPetScale
     @Published var previewStateName: String = ""
     @Published private(set) var isPetAnimationPaused = false
+    @Published private(set) var plugins: [PluginConfiguration] = []
+    @Published private(set) var selectedPluginID: UUID?
+    @Published private(set) var selectedPanelPluginID: UUID?
+    @Published var isPluginSidebarExpanded = false
 
     private let catalogLoader = PetCatalogLoader()
     private let preferencesStore: AppPreferencesStore
+    private let pluginStore: PluginStore
 
     private var runtimeController: PetRuntimeController?
     private var menuBarController: MenuBarController?
@@ -26,8 +31,12 @@ final class AppCoordinator: NSObject, ObservableObject {
     private var outsideClickMonitor: OutsideClickMonitor?
     private var trelloReturnState: PetAnchorState?
 
-    init(preferencesStore: AppPreferencesStore = AppPreferencesStore()) {
+    init(
+        preferencesStore: AppPreferencesStore = AppPreferencesStore(),
+        pluginStore: PluginStore = PluginStore()
+    ) {
         self.preferencesStore = preferencesStore
+        self.pluginStore = pluginStore
         super.init()
     }
 
@@ -40,6 +49,9 @@ final class AppCoordinator: NSObject, ObservableObject {
             let restoredAnimationPaused = preferencesStore.loadPetAnimationPaused()
             currentScale = restoredScale
             isPetAnimationPaused = restoredAnimationPaused
+            plugins = try pluginStore.loadPlugins()
+            selectedPluginID = plugins.first?.id
+            selectedPanelPluginID = nil
 
             runtimeController = PetRuntimeController(
                 availablePets: availablePets,
@@ -82,7 +94,7 @@ final class AppCoordinator: NSObject, ObservableObject {
         NSApplication.shared.activate(ignoringOtherApps: true)
     }
 
-    func showTrello() {
+    func openPluginPanel() {
         guard let petWindow, let runtimeController else { return }
 
         if trelloReturnState == nil {
@@ -91,6 +103,8 @@ final class AppCoordinator: NSObject, ObservableObject {
                 mode: runtimeController.currentMode
             )
         }
+        preparePluginPanelSelection()
+        isPluginSidebarExpanded = false
         updatePetMode(.hovering)
 
         if let panelWindow {
@@ -100,7 +114,7 @@ final class AppCoordinator: NSObject, ObservableObject {
             return
         }
 
-        let panelWindow = PanelWindow(rootView: TrelloPanelView()) { [weak self] in
+        let panelWindow = PanelWindow(rootView: PluginPanelView(coordinator: self)) { [weak self] in
             Task { @MainActor in
                 self?.handlePanelWindowClosed()
             }
@@ -108,6 +122,10 @@ final class AppCoordinator: NSObject, ObservableObject {
         self.panelWindow = panelWindow
         panelWindow.show(anchoredTo: petWindow.frame)
         startOutsideClickMonitoring()
+    }
+
+    func showTrello() {
+        openPluginPanel()
     }
 
     func hideTrelloAndRestorePet() {
@@ -157,6 +175,89 @@ final class AppCoordinator: NSObject, ObservableObject {
         previewStateName = stateName
     }
 
+    func selectPlugin(_ pluginID: UUID?) {
+        selectedPluginID = pluginID
+    }
+
+    func selectPanelPlugin(_ pluginID: UUID?) {
+        selectedPanelPluginID = pluginID
+    }
+
+    func togglePluginSidebar() {
+        isPluginSidebarExpanded.toggle()
+    }
+
+    func addPlugin() {
+        let plugin = PluginConfiguration(
+            id: UUID(),
+            name: "未命名插件",
+            url: AppConstants.defaultPluginURL,
+            iconName: "puzzlepiece.extension",
+            isEnabled: true,
+            sortOrder: plugins.count
+        )
+        plugins.append(plugin)
+        persistPlugins(selecting: plugin.id)
+    }
+
+    @discardableResult
+    func updateSelectedPlugin(
+        name: String,
+        urlString: String,
+        iconName: String,
+        isEnabled: Bool
+    ) -> Bool {
+        guard
+            let selectedPluginID,
+            let index = plugins.firstIndex(where: { $0.id == selectedPluginID }),
+            let url = URL(string: urlString),
+            !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        else {
+            return false
+        }
+
+        plugins[index].name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        plugins[index].url = url
+        plugins[index].iconName = iconName.trimmingCharacters(in: .whitespacesAndNewlines)
+        plugins[index].isEnabled = isEnabled
+        persistPlugins(selecting: selectedPluginID)
+        return true
+    }
+
+    func deleteSelectedPlugin() {
+        guard
+            let selectedPluginID,
+            let index = plugins.firstIndex(where: { $0.id == selectedPluginID })
+        else {
+            return
+        }
+
+        plugins.remove(at: index)
+        let nextSelection = plugins.indices.contains(index) ? plugins[index].id : plugins.last?.id
+        persistPlugins(selecting: nextSelection)
+    }
+
+    func movePlugins(from source: IndexSet, to destination: Int) {
+        plugins.move(fromOffsets: source, toOffset: destination)
+        let nextSelection = selectedPluginID
+        persistPlugins(selecting: nextSelection)
+    }
+
+    func movePlugin(sourceID: UUID, before targetID: UUID) {
+        guard
+            sourceID != targetID,
+            let sourceIndex = plugins.firstIndex(where: { $0.id == sourceID }),
+            let targetIndex = plugins.firstIndex(where: { $0.id == targetID })
+        else {
+            return
+        }
+
+        let movingPlugin = plugins.remove(at: sourceIndex)
+        let adjustedTargetIndex = sourceIndex < targetIndex ? max(0, targetIndex - 1) : targetIndex
+        plugins.insert(movingPlugin, at: adjustedTargetIndex)
+        persistPlugins(selecting: selectedPluginID)
+    }
+
     func togglePetAnimationPaused() {
         isPetAnimationPaused.toggle()
         preferencesStore.savePetAnimationPaused(isPetAnimationPaused)
@@ -196,7 +297,6 @@ final class AppCoordinator: NSObject, ObservableObject {
     private func createMenuBarController() {
         menuBarController = MenuBarController(
             onOpenSettings: { [weak self] in self?.openSettings() },
-            onShowTrello: { [weak self] in self?.showTrello() },
             onTogglePetAnimation: { [weak self] in self?.togglePetAnimationPaused() },
             isPetAnimationPaused: isPetAnimationPaused,
             onResetPet: { [weak self] in self?.resetPetPosition() },
@@ -215,7 +315,7 @@ final class AppCoordinator: NSObject, ObservableObject {
         renderView.isAnimationPaused = isPetAnimationPaused
         renderView.onTap = { [weak self] in
             Task { @MainActor in
-                self?.showTrello()
+                self?.openPluginPanel()
             }
         }
         renderView.onDragEnded = { [weak self] origin in
@@ -296,6 +396,42 @@ final class AppCoordinator: NSObject, ObservableObject {
         handlePanelWindowClosed()
     }
 
+    var pluginsForTesting: [PluginConfiguration] {
+        plugins
+    }
+
+    var selectedPluginForTesting: PluginConfiguration? {
+        plugins.first(where: { $0.id == selectedPluginID })
+    }
+
+    var selectedPlugin: PluginConfiguration? {
+        plugins.first(where: { $0.id == selectedPluginID })
+    }
+
+    var visiblePlugins: [PluginConfiguration] {
+        plugins.filter(\.isEnabled)
+    }
+
+    var selectedPanelPlugin: PluginConfiguration? {
+        visiblePlugins.first(where: { $0.id == selectedPanelPluginID })
+    }
+
+    var pluginStoreForTesting: PluginStore {
+        pluginStore
+    }
+
+    func preparePluginPanelForTesting() {
+        preparePluginPanelSelection()
+    }
+
+    var selectedPanelPluginForTesting: PluginConfiguration? {
+        selectedPanelPlugin
+    }
+
+    var isPluginPanelEmptyForTesting: Bool {
+        selectedPanelPlugin == nil
+    }
+
     private func enterAgentMode() {
         NSApplication.shared.setActivationPolicy(.accessory)
     }
@@ -307,8 +443,8 @@ final class AppCoordinator: NSObject, ObservableObject {
     private func configureMainMenu() {
         let mainMenu = NSMenu()
 
-        let appItem = NSMenuItem()
-        let appMenu = NSMenu()
+        let appItem = NSMenuItem(title: AppConstants.appName, action: nil, keyEquivalent: "")
+        let appMenu = NSMenu(title: AppConstants.appName)
         appMenu.addItem(
             withTitle: "退出 \(AppConstants.appName)",
             action: #selector(NSApplication.terminate(_:)),
@@ -317,7 +453,21 @@ final class AppCoordinator: NSObject, ObservableObject {
         appItem.submenu = appMenu
         mainMenu.addItem(appItem)
 
-        let windowItem = NSMenuItem()
+        let editItem = NSMenuItem(title: "编辑", action: nil, keyEquivalent: "")
+        let editMenu = NSMenu(title: "编辑")
+        editMenu.autoenablesItems = true
+        editMenu.addItem(withTitle: "撤销", action: NSSelectorFromString("undo:"), keyEquivalent: "z")
+        editMenu.addItem(withTitle: "重做", action: NSSelectorFromString("redo:"), keyEquivalent: "Z")
+        editMenu.addItem(.separator())
+        editMenu.addItem(withTitle: "剪切", action: NSSelectorFromString("cut:"), keyEquivalent: "x")
+        editMenu.addItem(withTitle: "复制", action: NSSelectorFromString("copy:"), keyEquivalent: "c")
+        editMenu.addItem(withTitle: "粘贴", action: NSSelectorFromString("paste:"), keyEquivalent: "v")
+        editMenu.addItem(withTitle: "全选", action: NSSelectorFromString("selectAll:"), keyEquivalent: "a")
+        editItem.submenu = editMenu
+        mainMenu.addItem(editItem)
+        NSApplication.shared.servicesMenu = editMenu
+
+        let windowItem = NSMenuItem(title: "窗口", action: nil, keyEquivalent: "")
         let windowMenu = NSMenu(title: "窗口")
         let closeItem = NSMenuItem(
             title: "关闭",
@@ -329,6 +479,7 @@ final class AppCoordinator: NSObject, ObservableObject {
         windowMenu.addItem(closeItem)
         windowItem.submenu = windowMenu
         mainMenu.addItem(windowItem)
+        NSApplication.shared.windowsMenu = windowMenu
 
         NSApplication.shared.mainMenu = mainMenu
     }
@@ -336,5 +487,29 @@ final class AppCoordinator: NSObject, ObservableObject {
     @objc
     private func handleCloseMenuItem() {
         performWindowClose()
+    }
+
+    private func persistPlugins(selecting pluginID: UUID?) {
+        do {
+            try pluginStore.savePlugins(plugins)
+            plugins = try pluginStore.loadPlugins()
+            if let pluginID, plugins.contains(where: { $0.id == pluginID }) {
+                selectedPluginID = pluginID
+            } else {
+                selectedPluginID = plugins.first?.id
+            }
+            preparePluginPanelSelection()
+        } catch {
+            assertionFailure("Failed to persist plugins: \(error)")
+        }
+    }
+
+    private func preparePluginPanelSelection() {
+        let visiblePluginIDs = Set(visiblePlugins.map(\.id))
+        if let selectedPanelPluginID, visiblePluginIDs.contains(selectedPanelPluginID) {
+            return
+        }
+
+        selectedPanelPluginID = visiblePlugins.first?.id
     }
 }

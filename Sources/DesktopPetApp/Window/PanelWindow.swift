@@ -5,7 +5,11 @@ import SwiftUI
 final class PanelWindow: NSPanel, NSWindowDelegate {
     private let onClose: () -> Void
 
-    init(rootView: TrelloPanelView, onClose: @escaping () -> Void = {}) {
+    init<Content: View>(
+        rootView: Content,
+        title: String = "插件面板",
+        onClose: @escaping () -> Void = {}
+    ) {
         self.onClose = onClose
         super.init(
             contentRect: CGRect(origin: .zero, size: AppConstants.panelSize),
@@ -14,7 +18,7 @@ final class PanelWindow: NSPanel, NSWindowDelegate {
             defer: false
         )
 
-        title = "Trello"
+        self.title = title
         titlebarAppearsTransparent = true
         isReleasedWhenClosed = false
         level = .floating
@@ -35,5 +39,13 @@ final class PanelWindow: NSPanel, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         onClose()
+    }
+
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        if EditingCommandRouter.performIfNeeded(for: event, sender: self) {
+            return true
+        }
+
+        return super.performKeyEquivalent(with: event)
     }
 }

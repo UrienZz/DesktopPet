@@ -1,14 +1,14 @@
 import SwiftUI
 
 struct SettingsActionsView: View {
-    let onOpenTrello: () -> Void
+    let onOpenPluginPanel: () -> Void
     let onResetPosition: () -> Void
     let onQuit: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Button("打开 Trello", action: onOpenTrello)
+                Button("打开插件面板", action: onOpenPluginPanel)
                     .buttonStyle(.borderedProminent)
                 Button("重置宠物位置", action: onResetPosition)
                     .buttonStyle(.bordered)

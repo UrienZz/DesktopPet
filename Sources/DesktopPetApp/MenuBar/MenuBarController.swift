@@ -7,7 +7,6 @@ final class MenuBarController {
 
     init(
         onOpenSettings: @escaping () -> Void,
-        onShowTrello: @escaping () -> Void,
         onTogglePetAnimation: @escaping () -> Void,
         isPetAnimationPaused: Bool,
         onResetPet: @escaping () -> Void,
@@ -21,7 +20,6 @@ final class MenuBarController {
 
         let menu = NSMenu()
         menu.addItem(withTitle: "打开设置", action: nil, keyEquivalent: "").onSelect(onOpenSettings)
-        menu.addItem(withTitle: "打开 Trello", action: nil, keyEquivalent: "").onSelect(onShowTrello)
         animationMenuItem.onSelect(onTogglePetAnimation)
         menu.addItem(animationMenuItem)
         menu.addItem(withTitle: "重置宠物位置", action: nil, keyEquivalent: "").onSelect(onResetPet)

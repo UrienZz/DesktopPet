@@ -3,5 +3,5 @@ import Testing
 
 @Test
 func 设置侧边栏顺序与标题正确() {
-    #expect(SettingsPane.allCases.map(\.title) == ["桌宠", "Trello", "外观", "关于"])
+    #expect(SettingsPane.allCases.map(\.title) == ["桌宠", "插件", "外观", "关于"])
 }
