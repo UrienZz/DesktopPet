@@ -25,6 +25,7 @@ final class AppCoordinator: NSObject, ObservableObject {
     private let preferencesStore: AppPreferencesStore
     private let pluginStore: PluginStore
     private let importedPetStore: ImportedPetStore
+    private let applicationIconUpdater: ApplicationIconUpdating
 
     private var runtimeController: PetRuntimeController?
     private var menuBarController: MenuBarController?
@@ -41,12 +42,14 @@ final class AppCoordinator: NSObject, ObservableObject {
         preferencesStore: AppPreferencesStore = AppPreferencesStore(),
         pluginStore: PluginStore = PluginStore(),
         catalogLoader: PetCatalogLoader = PetCatalogLoader(),
-        importedPetStore: ImportedPetStore = ImportedPetStore()
+        importedPetStore: ImportedPetStore = ImportedPetStore(),
+        applicationIconUpdater: ApplicationIconUpdating = ApplicationIconUpdater()
     ) {
         self.preferencesStore = preferencesStore
         self.pluginStore = pluginStore
         self.catalogLoader = catalogLoader
         self.importedPetStore = importedPetStore
+        self.applicationIconUpdater = applicationIconUpdater
         super.init()
     }
 
@@ -652,6 +655,7 @@ final class AppCoordinator: NSObject, ObservableObject {
 
     private func enterSettingsMode() {
         NSApplication.shared.setActivationPolicy(.regular)
+        applicationIconUpdater.applyApplicationIcon()
     }
 
     private func configureMainMenu() {
