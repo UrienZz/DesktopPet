@@ -33,6 +33,9 @@ final class AppCoordinator: NSObject, ObservableObject {
     private var settingsWindowController: SettingsWindowController?
     private var outsideClickMonitor: OutsideClickMonitor?
     private var trelloReturnState: PetAnchorState?
+    private var petHoverGreetingTask: Task<Void, Never>?
+    private var isPetPointerHovering = false
+    private var isPetHoverGreetingActive = false
 
     init(
         preferencesStore: AppPreferencesStore = AppPreferencesStore(),
@@ -104,6 +107,7 @@ final class AppCoordinator: NSObject, ObservableObject {
     func openPluginPanel() {
         guard let petWindow, let runtimeController else { return }
 
+        cancelPetHoverGreeting()
         if trelloReturnState == nil {
             trelloReturnState = PetAnchorState(
                 position: runtimeController.currentPosition,
@@ -387,6 +391,11 @@ final class AppCoordinator: NSObject, ObservableObject {
                 self?.openPluginPanel()
             }
         }
+        renderView.onHoverChanged = { [weak self] isHovering in
+            Task { @MainActor in
+                self?.handlePetHoverChanged(isHovering)
+            }
+        }
         renderView.onDragEnded = { [weak self] origin in
             Task { @MainActor in
                 self?.handlePetDragEnded(windowOrigin: origin)
@@ -500,6 +509,75 @@ final class AppCoordinator: NSObject, ObservableObject {
         resetPetPosition()
     }
 
+    private func handlePetHoverChanged(_ isHovering: Bool) {
+        isPetPointerHovering = isHovering
+
+        guard isPluginPanelVisible == false else {
+            cancelPetHoverGreeting()
+            return
+        }
+
+        if isHovering {
+            schedulePetHoverGreeting()
+        } else {
+            cancelPetHoverGreeting()
+        }
+    }
+
+    private func schedulePetHoverGreeting() {
+        guard canActivatePetHoverGreeting else {
+            cancelPendingPetHoverGreetingTask()
+            return
+        }
+
+        guard isPetHoverGreetingActive == false else { return }
+        cancelPendingPetHoverGreetingTask()
+        petHoverGreetingTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: AppConstants.petHoverGreetingDelayNanoseconds)
+            await MainActor.run {
+                self?.activatePetHoverGreetingIfNeeded()
+            }
+        }
+    }
+
+    private func activatePetHoverGreetingIfNeeded() {
+        cancelPendingPetHoverGreetingTask()
+        guard canActivatePetHoverGreeting else { return }
+        guard let renderView = petWindow?.renderView else { return }
+        guard currentPet?.states["greet"] != nil else { return }
+
+        isPetHoverGreetingActive = true
+        renderView.forcedStateName = "greet"
+    }
+
+    private func cancelPetHoverGreeting() {
+        cancelPendingPetHoverGreetingTask()
+        guard isPetHoverGreetingActive else { return }
+        isPetHoverGreetingActive = false
+        petWindow?.renderView.forcedStateName = nil
+    }
+
+    private func cancelPendingPetHoverGreetingTask() {
+        petHoverGreetingTask?.cancel()
+        petHoverGreetingTask = nil
+    }
+
+    private var canActivatePetHoverGreeting: Bool {
+        guard isPetPointerHovering, isPluginPanelVisible == false else { return false }
+        guard let runtimeController else { return false }
+
+        switch runtimeController.currentMode {
+        case .climbLeft, .climbRight, .standing, .bottomIdle:
+            return true
+        case .dragging, .hovering, .falling:
+            return false
+        }
+    }
+
+    private var isPluginPanelVisible: Bool {
+        panelWindow?.isVisible == true
+    }
+
     var currentPetPositionForTesting: CGPoint {
         runtimeController?.currentPosition ?? .zero
     }
@@ -510,6 +588,18 @@ final class AppCoordinator: NSObject, ObservableObject {
 
     func simulatePanelWindowClosedForTesting() {
         handlePanelWindowClosed()
+    }
+
+    func simulatePetHoverChangedForTesting(_ isHovering: Bool) {
+        handlePetHoverChanged(isHovering)
+    }
+
+    func triggerPendingPetHoverGreetingForTesting() {
+        activatePetHoverGreetingIfNeeded()
+    }
+
+    var currentForcedStateNameForTesting: String? {
+        petWindow?.renderView.forcedStateName
     }
 
     var pluginsForTesting: [PluginConfiguration] {

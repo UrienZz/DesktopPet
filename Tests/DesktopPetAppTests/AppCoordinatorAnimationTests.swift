@@ -73,6 +73,62 @@ func 关闭Trello窗口后应恢复打开前的贴边位置与姿势() {
 }
 
 @MainActor
+@Test
+func 悬停未触发延迟前不应进入打招呼姿势() {
+    let coordinator = makeCoordinator()
+    coordinator.start()
+
+    coordinator.simulatePetHoverChangedForTesting(true)
+
+    #expect(coordinator.currentForcedStateNameForTesting == nil)
+}
+
+@MainActor
+@Test
+func 悬停延迟触发后应进入打招呼姿势移出后恢复() {
+    let coordinator = makeCoordinator()
+    coordinator.start()
+
+    coordinator.simulatePetHoverChangedForTesting(true)
+    coordinator.triggerPendingPetHoverGreetingForTesting()
+    #expect(coordinator.currentForcedStateNameForTesting == "greet")
+
+    coordinator.simulatePetHoverChangedForTesting(false)
+    #expect(coordinator.currentForcedStateNameForTesting == nil)
+}
+
+@MainActor
+@Test
+func 点击打开面板后应清除打招呼姿势并保持现有面板状态() {
+    let coordinator = makeCoordinator()
+    coordinator.start()
+
+    coordinator.simulatePetHoverChangedForTesting(true)
+    coordinator.triggerPendingPetHoverGreetingForTesting()
+    #expect(coordinator.currentForcedStateNameForTesting == "greet")
+
+    coordinator.showTrello()
+
+    #expect(coordinator.currentForcedStateNameForTesting == nil)
+    #expect(coordinator.currentPetModeForTesting == .hovering)
+}
+
+@MainActor
+@Test
+func 关闭面板后再次悬停仍应进入打招呼姿势() {
+    let coordinator = makeCoordinator()
+    coordinator.start()
+
+    coordinator.showTrello()
+    coordinator.hideTrelloAndRestorePet()
+
+    coordinator.simulatePetHoverChangedForTesting(true)
+    coordinator.triggerPendingPetHoverGreetingForTesting()
+
+    #expect(coordinator.currentForcedStateNameForTesting == "greet")
+}
+
+@MainActor
 private func makeCoordinator() -> AppCoordinator {
     let suiteName = "AppCoordinatorAnimationTests-\(UUID().uuidString)"
     let defaults = UserDefaults(suiteName: suiteName)!

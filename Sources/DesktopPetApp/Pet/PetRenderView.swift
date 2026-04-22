@@ -3,23 +3,38 @@ import AppKit
 @MainActor
 final class PetRenderView: NSView {
     var pet: PetDefinition {
-        didSet { reloadFrames() }
+        didSet {
+            guard oldValue != pet else { return }
+            reloadFrames()
+        }
     }
 
     var runtimeMode: PetRuntimeMode {
-        didSet { reloadFrames() }
+        didSet {
+            guard oldValue != runtimeMode else { return }
+            reloadFrames()
+        }
     }
 
     var forcedStateName: String? {
-        didSet { reloadFrames() }
+        didSet {
+            guard oldValue != forcedStateName else { return }
+            reloadFrames()
+        }
     }
 
     var forceMirrored = false {
-        didSet { reloadFrames() }
+        didSet {
+            guard oldValue != forceMirrored else { return }
+            reloadFrames()
+        }
     }
 
     var isAnimationPaused = false {
-        didSet { updateFrameAnimationTimer() }
+        didSet {
+            guard oldValue != isAnimationPaused else { return }
+            updateFrameAnimationTimer()
+        }
     }
 
     var scaleFactor: CGFloat {
@@ -32,6 +47,7 @@ final class PetRenderView: NSView {
     var interactionEnabled = true
     var onTap: (() -> Void)?
     var onDragEnded: ((CGPoint) -> Void)?
+    var onHoverChanged: ((Bool) -> Void)?
 
     private var spriteSheet: CGImage?
     private var frameImages: [CGImage] = []
@@ -41,6 +57,8 @@ final class PetRenderView: NSView {
     private var dragStartOrigin: CGPoint = .zero
     private var isDragging = false
     private var frameAdvanceTimer: Timer?
+    private var hoverTrackingArea: NSTrackingArea?
+    private var isHoveringInteractiveRegion = false
 
     init(pet: PetDefinition, runtimeMode: PetRuntimeMode, scaleFactor: CGFloat) {
         self.pet = pet
@@ -95,8 +113,37 @@ final class PetRenderView: NSView {
         true
     }
 
+    override func updateTrackingAreas() {
+        if let hoverTrackingArea {
+            removeTrackingArea(hoverTrackingArea)
+        }
+
+        let trackingArea = NSTrackingArea(
+            rect: bounds,
+            options: [.activeAlways, .mouseEnteredAndExited, .mouseMoved, .inVisibleRect],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(trackingArea)
+        hoverTrackingArea = trackingArea
+        super.updateTrackingAreas()
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        updateInteractiveHoverState(with: event)
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        updateInteractiveHoverState(with: event)
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        updateHoverState(false)
+    }
+
     override func mouseDown(with event: NSEvent) {
         guard interactionEnabled else { return }
+        updateHoverState(false)
         isDragging = false
         mouseDownScreenPoint = NSEvent.mouseLocation
         dragStartOrigin = window?.frame.origin ?? .zero
@@ -187,6 +234,21 @@ final class PetRenderView: NSView {
 
     static func dragRuntimeMode(for pet: PetDefinition, currentMode: PetRuntimeMode) -> PetRuntimeMode {
         pet.states["drag"] != nil ? .dragging : currentMode
+    }
+
+    private func updateInteractiveHoverState(with event: NSEvent) {
+        guard interactionEnabled else {
+            updateHoverState(false)
+            return
+        }
+        let localPoint = convert(event.locationInWindow, from: nil)
+        updateHoverState(containsInteractivePixel(at: localPoint))
+    }
+
+    private func updateHoverState(_ isHovering: Bool) {
+        guard isHoveringInteractiveRegion != isHovering else { return }
+        isHoveringInteractiveRegion = isHovering
+        onHoverChanged?(isHovering)
     }
 
     @objc

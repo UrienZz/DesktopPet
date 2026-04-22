@@ -30,6 +30,7 @@ final class PetWindow: NSPanel {
         }
 
         contentView = renderView
+        acceptsMouseMovedEvents = true
         resizeToFitContent()
     }
 
