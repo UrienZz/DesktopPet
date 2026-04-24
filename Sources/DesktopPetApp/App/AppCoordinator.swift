@@ -302,7 +302,11 @@ final class AppCoordinator: NSObject, ObservableObject {
 
     @discardableResult
     func importPetArchive(at archiveURL: URL) throws -> PetDefinition {
-        let importedPet = try importedPetStore.importPetArchive(from: archiveURL)
+        let reservedNames = Set(availablePets.map(\.name))
+        let importedPet = try importedPetStore.importPetArchive(
+            from: archiveURL,
+            reservedNames: reservedNames
+        )
         try reloadPetCatalog(selecting: currentPet?.name)
         return importedPet
     }
