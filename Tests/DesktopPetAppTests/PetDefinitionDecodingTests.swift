@@ -2,8 +2,9 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证旧项目宠物定义仍可被解码。
 @Test
-func 可解码旧项目宠物定义() throws {
+func decodesLegacyPetDefinition() throws {
     let sampleURL = AppConstants.configDirectoryURL.appendingPathComponent("ayaka.json")
     let data = try Data(contentsOf: sampleURL)
 
@@ -19,8 +20,9 @@ func 可解码旧项目宠物定义() throws {
     #expect(pet.storageDirectoryURL == nil)
 }
 
+/// 验证运行态会将底边与拖拽动作映射到 sit 和 drag。
 @Test
-func 运行态应将底边与拖拽动作解析到sit和drag() {
+func runtimeModesMapBottomAndDraggingActionsToSitAndDrag() {
     let pet = PetDefinition(
         name: "Custom",
         imageSource: "media/custom.png",

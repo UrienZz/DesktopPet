@@ -2,9 +2,10 @@ import CoreGraphics
 import Testing
 @testable import DesktopPetApp
 
+/// 验证拖拽位移基于屏幕坐标而不是窗口局部坐标。
 @MainActor
 @Test
-func 拖拽位移应基于屏幕坐标而不是窗口局部坐标() {
+func dragDeltaUsesScreenCoordinatesInsteadOfWindowLocalCoordinates() {
     let startOrigin = CGPoint(x: 800, y: 400)
     let mouseDown = CGPoint(x: 1000, y: 700)
     let current = CGPoint(x: 920, y: 620)

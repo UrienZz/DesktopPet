@@ -2,9 +2,10 @@ import AppKit
 import Testing
 @testable import DesktopPetApp
 
+/// 验证打开设置时会刷新应用图标显示。
 @MainActor
 @Test
-func 打开设置时应刷新应用图标() {
+func openingSettingsRefreshesAppIcon() {
     let iconUpdater = SpyApplicationIconUpdater()
     let coordinator = AppCoordinator(applicationIconUpdater: iconUpdater)
 

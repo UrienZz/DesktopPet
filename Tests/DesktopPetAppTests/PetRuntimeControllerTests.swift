@@ -2,8 +2,9 @@ import CoreGraphics
 import Testing
 @testable import DesktopPetApp
 
+/// 验证运行态控制器默认进入右爬墙并支持切换宠物与缩放。
 @Test
-func 运行态控制器默认进入右爬墙并支持切换宠物与缩放() throws {
+func runtimeControllerStartsAtRightClimbingAndSupportsPetAndScaleChanges() throws {
     let pets = try PetCatalogLoader().loadAllPets()
     let controller = PetRuntimeController(
         availablePets: pets,
@@ -22,8 +23,9 @@ func 运行态控制器默认进入右爬墙并支持切换宠物与缩放() thr
     #expect(controller.currentScale == 0.9)
 }
 
+/// 验证重置后会回到右侧中间默认位置。
 @Test
-func 重置后回到右侧中间默认位置() throws {
+func resetReturnsToMiddleRightDefaultPosition() throws {
     let pets = try PetCatalogLoader().loadAllPets()
     let controller = PetRuntimeController(
         availablePets: pets,

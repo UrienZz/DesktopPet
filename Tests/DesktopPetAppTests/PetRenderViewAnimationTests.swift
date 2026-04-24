@@ -2,9 +2,10 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证多帧姿势默认会开启逐帧动画。
 @MainActor
 @Test
-func 多帧姿势默认应开启逐帧动画() throws {
+func multiFramePoseStartsFrameAnimationByDefault() throws {
     let pet = try loadAyaka()
     let renderView = PetRenderView(
         pet: pet,
@@ -15,9 +16,10 @@ func 多帧姿势默认应开启逐帧动画() throws {
     #expect(renderView.isFrameAnimationActiveForTesting)
 }
 
+/// 验证暂停后会停止逐帧动画，恢复后继续播放。
 @MainActor
 @Test
-func 暂停后应停止逐帧动画恢复后继续() throws {
+func pausingStopsFrameAnimationAndResumingContinues() throws {
     let pet = try loadAyaka()
     let renderView = PetRenderView(
         pet: pet,

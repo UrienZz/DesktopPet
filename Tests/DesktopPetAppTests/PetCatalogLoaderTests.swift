@@ -2,8 +2,9 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证可以加载内置宠物目录。
 @Test
-func 可加载内置宠物目录() throws {
+func loadsBundledPetCatalog() throws {
     let loader = PetCatalogLoader()
 
     let pets = try loader.loadAllPets()
@@ -14,8 +15,9 @@ func 可加载内置宠物目录() throws {
     #expect(pets.contains(where: { $0.name == "Batman" }))
 }
 
+/// 验证可以同时加载内置宠物和导入宠物。
 @Test
-func 可同时加载内置与导入宠物() throws {
+func loadsBundledAndImportedPetCatalogs() throws {
     let workspace = try makeWorkspace(named: "catalog-loader")
     let importedStore = ImportedPetStore(baseDirectoryURL: workspace.importedPetsURL)
     let archiveURL = try makePetArchive(

@@ -2,9 +2,10 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证启动后会加载默认插件并选中首项。
 @MainActor
 @Test
-func 启动后应加载默认插件并选中首项() throws {
+func launchLoadsDefaultPluginAndSelectsFirst() throws {
     let coordinator = makeCoordinator()
 
     coordinator.start()
@@ -14,9 +15,10 @@ func 启动后应加载默认插件并选中首项() throws {
     #expect(coordinator.selectedPluginForTesting?.name == "Trello")
 }
 
+/// 验证新增插件后会自动选中新项。
 @MainActor
 @Test
-func 新增插件后应自动选中新项() throws {
+func addingPluginAutomaticallySelectsNewItem() throws {
     let coordinator = makeCoordinator()
     coordinator.start()
 
@@ -26,9 +28,10 @@ func 新增插件后应自动选中新项() throws {
     #expect(coordinator.selectedPluginForTesting?.name == "未命名插件")
 }
 
+/// 验证删除最后一个插件后允许插件列表为空。
 @MainActor
 @Test
-func 删除最后一个插件后应允许为空列表() throws {
+func deletingLastPluginAllowsEmptyList() throws {
     let coordinator = makeCoordinator()
     coordinator.start()
 
@@ -38,9 +41,10 @@ func 删除最后一个插件后应允许为空列表() throws {
     #expect(coordinator.selectedPluginForTesting == nil)
 }
 
+/// 验证拖拽排序后会按新顺序保存。
 @MainActor
 @Test
-func 拖拽排序后应按新顺序保存() throws {
+func reorderingPluginsSavesNewOrder() throws {
     let coordinator = makeCoordinator()
     coordinator.start()
     coordinator.addPlugin()

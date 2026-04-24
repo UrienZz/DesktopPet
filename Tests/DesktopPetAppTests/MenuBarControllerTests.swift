@@ -1,9 +1,10 @@
 import Testing
 @testable import DesktopPetApp
 
+/// 验证状态栏菜单会在重置位置上方显示暂停宠物动作。
 @MainActor
 @Test
-func 状态栏菜单应在重置位置上方显示暂停宠物动作() {
+func statusMenuShowsPauseAnimationAboveResetPosition() {
     let controller = MenuBarController(
         onOpenSettings: {},
         onTogglePetAnimation: {},
@@ -15,9 +16,10 @@ func 状态栏菜单应在重置位置上方显示暂停宠物动作() {
     #expect(controller.menuTitlesForTesting == ["打开设置", "暂停宠物动作", "重置宠物位置", "", "退出"])
 }
 
+/// 验证状态栏菜单在暂停后会切换为开启宠物动作。
 @MainActor
 @Test
-func 状态栏菜单在暂停后应切换为开启宠物动作() {
+func statusMenuTitleSwitchesToResumeAnimationAfterPause() {
     let controller = MenuBarController(
         onOpenSettings: {},
         onTogglePetAnimation: {},

@@ -2,9 +2,10 @@ import AppKit
 import Testing
 @testable import DesktopPetApp
 
+/// 验证主菜单包含编辑菜单以支持全选、复制和粘贴快捷键。
 @MainActor
 @Test
-func 主菜单应包含编辑菜单以支持全选复制粘贴快捷键() {
+func mainMenuContainsEditMenuForSelectAllCopyPasteShortcuts() {
     let coordinator = AppCoordinator()
     coordinator.start()
 

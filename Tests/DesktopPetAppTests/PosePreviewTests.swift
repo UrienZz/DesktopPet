@@ -3,8 +3,9 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证姿势预览包含全部真实姿势并追加左爬墙镜像选项。
 @Test
-func 姿势预览应包含全部真实姿势并追加左爬墙镜像选项() throws {
+func posePreviewIncludesAllRealPosesAndAddsLeftClimbMirrorOption() throws {
     let data = try Data(contentsOf: AppConstants.configDirectoryURL.appendingPathComponent("ayaka.json"))
     let pet = try JSONDecoder().decode(PetDefinition.self, from: data)
 
@@ -13,8 +14,9 @@ func 姿势预览应包含全部真实姿势并追加左爬墙镜像选项() thr
     #expect(options.map(\.id) == ["climbLeft", "climb", "crawl", "drag", "fall", "greet", "jump", "sit", "stand", "walk"])
 }
 
+/// 验证姿势预览优先显示中文名称。
 @Test
-func 姿势预览应优先显示中文名称() throws {
+func posePreviewPrefersLocalizedChineseName() throws {
     let data = try Data(contentsOf: AppConstants.configDirectoryURL.appendingPathComponent("ayaka.json"))
     let pet = try JSONDecoder().decode(PetDefinition.self, from: data)
 
@@ -26,16 +28,18 @@ func 姿势预览应优先显示中文名称() throws {
     #expect(options.first(where: { $0.id == "stand" })?.title == "站立")
 }
 
+/// 验证左爬墙预览映射到右爬墙素材并启用镜像。
 @Test
-func 左爬墙预览应映射到右爬墙素材并启用镜像() {
+func leftClimbPreviewMapsToRightClimbAssetAndEnablesMirroring() {
     let configuration = PosePreviewCatalog.renderConfiguration(for: "climbLeft")
 
     #expect(configuration.stateName == "climb")
     #expect(configuration.isMirrored)
 }
 
+/// 验证姿势预览尺寸跟随当前缩放并限制最大显示尺寸。
 @Test
-func 姿势预览尺寸应跟随当前缩放并限制最大显示尺寸() throws {
+func posePreviewSizeFollowsCurrentScaleAndCapsMaximumDisplaySize() throws {
     let data = try Data(contentsOf: AppConstants.configDirectoryURL.appendingPathComponent("ayaka.json"))
     let pet = try JSONDecoder().decode(PetDefinition.self, from: data)
 
@@ -48,8 +52,9 @@ func 姿势预览尺寸应跟随当前缩放并限制最大显示尺寸() throws
     #expect(large == CGSize(width: 208, height: 208))
 }
 
+/// 验证姿势预览画布尺寸受可用空间约束。
 @Test
-func 姿势预览画布尺寸应受可用空间约束() {
+func posePreviewCanvasSizeIsConstrainedByAvailableSpace() {
     let compact = PosePreviewLayout.fittedCardDimension(availableWidth: 280, availableHeight: 188)
     let roomy = PosePreviewLayout.fittedCardDimension(availableWidth: 420, availableHeight: 360)
 

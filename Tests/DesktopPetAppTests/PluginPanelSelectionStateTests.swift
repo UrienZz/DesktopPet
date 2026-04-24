@@ -2,9 +2,10 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证首次选中未加载插件时会立即进入加载态。
 @MainActor
 @Test
-func 首次选中未加载插件时应立即进入加载态() {
+func firstSelectingUnloadedPluginImmediatelyEntersLoadingState() {
     let state = PluginPanelSelectionState()
     let plugin = makePlugin(name: "Trello", url: "https://trello.com")
 
@@ -14,9 +15,10 @@ func 首次选中未加载插件时应立即进入加载态() {
     #expect(state.isLoading)
 }
 
+/// 验证已加载插件再次选中时不会重复进入加载态。
 @MainActor
 @Test
-func 已加载插件再次选中时不应重复进入加载态() {
+func selectingLoadedPluginAgainDoesNotRepeatLoadingState() {
     let state = PluginPanelSelectionState()
     let first = makePlugin(name: "Trello", url: "https://trello.com")
     let second = makePlugin(name: "GitHub", url: "https://github.com")
@@ -32,9 +34,10 @@ func 已加载插件再次选中时不应重复进入加载态() {
     #expect(!state.isLoading)
 }
 
+/// 验证插件地址变更后会重新进入加载态。
 @MainActor
 @Test
-func 插件地址变更后应重新进入加载态() {
+func pluginURLChangeReentersLoadingState() {
     let state = PluginPanelSelectionState()
     let original = makePlugin(name: "Trello", url: "https://trello.com")
     let updated = PluginConfiguration(

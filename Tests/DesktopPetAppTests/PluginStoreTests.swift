@@ -2,8 +2,9 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证首次启动时会注入默认 Trello 插件。
 @Test
-func 首次启动应注入默认Trello插件() throws {
+func firstLaunchInjectsDefaultTrelloPlugin() throws {
     let defaults = makeDefaults()
     let store = PluginStore(userDefaults: defaults)
 
@@ -16,8 +17,9 @@ func 首次启动应注入默认Trello插件() throws {
     #expect(plugins[0].sortOrder == 0)
 }
 
+/// 验证用户主动删空插件后不会再次自动补回默认 Trello。
 @Test
-func 用户删空后不应再次自动补回默认Trello() throws {
+func emptyUserPluginListDoesNotReinjectDefaultTrello() throws {
     let defaults = makeDefaults()
     let store = PluginStore(userDefaults: defaults)
 
@@ -29,8 +31,9 @@ func 用户删空后不应再次自动补回默认Trello() throws {
     #expect(plugins.isEmpty)
 }
 
+/// 验证全部插件禁用时可展示插件列表为空。
 @Test
-func 全部禁用时可展示插件列表应为空() throws {
+func visiblePluginsAreEmptyWhenAllPluginsDisabled() throws {
     let defaults = makeDefaults()
     let store = PluginStore(userDefaults: defaults)
     let plugin = PluginConfiguration(

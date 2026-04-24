@@ -2,9 +2,10 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证当前宠物为内置宠物时不显示删除入口。
 @MainActor
 @Test
-func 当前内置宠物不应显示删除入口() throws {
+func bundledPetDoesNotShowDeleteAction() throws {
     let harness = try makeSettingsHarness()
 
     harness.coordinator.start()
@@ -13,9 +14,10 @@ func 当前内置宠物不应显示删除入口() throws {
     #expect(!harness.coordinator.canDeleteCurrentImportedPet)
 }
 
+/// 验证当前宠物为导入宠物时显示自定义来源和删除入口。
 @MainActor
 @Test
-func 当前导入宠物应显示自定义来源与删除入口() throws {
+func importedPetShowsCustomSourceAndDeleteAction() throws {
     let harness = try makeSettingsHarness()
     let archiveURL = try makePetArchive(
         workspace: harness.workspace,

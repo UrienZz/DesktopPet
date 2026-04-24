@@ -1,8 +1,9 @@
 import Testing
 @testable import DesktopPetApp
 
+/// 验证设置侧边栏悬停态优先于默认态。
 @Test
-func 设置侧边栏悬停态应强于默认态() {
+func settingsSidebarHoverStateOverridesDefaultState() {
     let idle = SettingsSidebarItemAppearance.resolve(isSelected: false, isHovered: false, isPressed: false)
     let hovered = SettingsSidebarItemAppearance.resolve(isSelected: false, isHovered: true, isPressed: false)
 
@@ -11,8 +12,9 @@ func 设置侧边栏悬停态应强于默认态() {
     #expect(hovered.iconTileOpacity > idle.iconTileOpacity)
 }
 
+/// 验证设置侧边栏选中态优先于悬停态。
 @Test
-func 设置侧边栏选中态应强于悬停态() {
+func settingsSidebarSelectedStateOverridesHoverState() {
     let hovered = SettingsSidebarItemAppearance.resolve(isSelected: false, isHovered: true, isPressed: false)
     let selected = SettingsSidebarItemAppearance.resolve(isSelected: true, isHovered: false, isPressed: false)
 
@@ -21,8 +23,9 @@ func 设置侧边栏选中态应强于悬停态() {
     #expect(selected.shadowOpacity > hovered.shadowOpacity)
 }
 
+/// 验证设置侧边栏按压态会产生轻微缩放。
 @Test
-func 设置侧边栏按压态应有轻微缩放() {
+func settingsSidebarPressedStateAppliesSlightScale() {
     let hovered = SettingsSidebarItemAppearance.resolve(isSelected: false, isHovered: true, isPressed: false)
     let pressed = SettingsSidebarItemAppearance.resolve(isSelected: false, isHovered: true, isPressed: true)
 

@@ -2,9 +2,10 @@ import AppKit
 import Testing
 @testable import DesktopPetApp
 
+/// 验证标准编辑快捷键会映射到对应 selector。
 @MainActor
 @Test
-func 标准编辑快捷键应映射到对应selector() {
+func standardEditingShortcutsMapToSelectors() {
     #expect(
         EditingCommandRouter.action(
             forKeyEquivalent: "a",
@@ -31,9 +32,10 @@ func 标准编辑快捷键应映射到对应selector() {
     )
 }
 
+/// 验证非编辑快捷键不会被编辑路由器接管。
 @MainActor
 @Test
-func 非编辑快捷键不应被路由器接管() {
+func nonEditingShortcutsAreNotHandledByRouter() {
     #expect(
         EditingCommandRouter.action(
             forKeyEquivalent: "p",

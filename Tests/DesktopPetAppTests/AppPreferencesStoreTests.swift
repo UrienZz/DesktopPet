@@ -2,8 +2,9 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证宠物名称与缩放值可以持久化并恢复。
 @Test
-func 可持久化并恢复宠物名称与缩放值() {
+func persistsAndRestoresPetNameAndScale() {
     let suiteName = "AppPreferencesStoreTests-\(UUID().uuidString)"
     let defaults = UserDefaults(suiteName: suiteName)!
     defer {
@@ -18,8 +19,9 @@ func 可持久化并恢复宠物名称与缩放值() {
     #expect(store.loadPetScale(defaultValue: AppConstants.defaultPetScale) == 0.95)
 }
 
+/// 验证宠物动画暂停状态可以持久化并恢复。
 @Test
-func 可持久化并恢复宠物动画暂停状态() {
+func persistsAndRestoresPetAnimationPausedState() {
     let suiteName = "AppPreferencesStoreTests-\(UUID().uuidString)"
     let defaults = UserDefaults(suiteName: suiteName)!
     defer {

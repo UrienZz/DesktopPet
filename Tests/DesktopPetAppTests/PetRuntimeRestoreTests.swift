@@ -1,8 +1,9 @@
 import Testing
 @testable import DesktopPetApp
 
+/// 验证运行态初始化时优先恢复已选择宠物与缩放。
 @Test
-func 运行态初始化时优先恢复已选择宠物与缩放() throws {
+func runtimeInitializationRestoresSelectedPetAndScale() throws {
     let pets = try PetCatalogLoader().loadAllPets()
 
     let controller = PetRuntimeController(

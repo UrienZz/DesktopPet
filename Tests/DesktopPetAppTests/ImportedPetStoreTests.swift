@@ -2,8 +2,9 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证合法宠物包可以成功导入并被列出。
 @Test
-func 合法宠物包可成功导入并列出() throws {
+func validPetArchiveImportsAndListsSuccessfully() throws {
     let workspace = try makeWorkspace(named: "valid")
     let store = ImportedPetStore(baseDirectoryURL: workspace.importedPetsURL)
     let archiveURL = try makePetArchive(
@@ -24,8 +25,9 @@ func 合法宠物包可成功导入并列出() throws {
     #expect(loadedPets.first?.mediaFileURL.lastPathComponent == "custom-ayaka.png")
 }
 
+/// 验证缺少图片资源时导入失败且不会写入目录。
 @Test
-func 缺少图片资源时导入失败且不写入目录() throws {
+func missingImageResourceFailsImportWithoutWritingDirectory() throws {
     let workspace = try makeWorkspace(named: "missing-image")
     let store = ImportedPetStore(baseDirectoryURL: workspace.importedPetsURL)
     let archiveURL = try makePetArchive(
@@ -41,8 +43,9 @@ func 缺少图片资源时导入失败且不写入目录() throws {
     #expect(try store.loadImportedPets().isEmpty)
 }
 
+/// 验证删除导入宠物后会清理存储目录。
 @Test
-func 删除导入宠物后应清理目录() throws {
+func deletingImportedPetCleansStorageDirectory() throws {
     let workspace = try makeWorkspace(named: "delete")
     let store = ImportedPetStore(baseDirectoryURL: workspace.importedPetsURL)
     let archiveURL = try makePetArchive(
@@ -61,8 +64,9 @@ func 删除导入宠物后应清理目录() throws {
     #expect(try store.loadImportedPets().isEmpty)
 }
 
+/// 验证与内置宠物重名时会自动追加递增后缀。
 @Test
-func 与内置宠物重名时应自动追加递增后缀() throws {
+func duplicateBundledPetNameAppendsIncrementingSuffix() throws {
     let workspace = try makeWorkspace(named: "rename-bundled-duplicate")
     let store = ImportedPetStore(baseDirectoryURL: workspace.importedPetsURL)
     let archiveURL = try makePetArchive(
@@ -79,8 +83,9 @@ func 与内置宠物重名时应自动追加递增后缀() throws {
     #expect(loadedPets.map(\.name) == ["Spongebob_1"])
 }
 
+/// 验证多次导入同名宠物时后缀会持续递增。
 @Test
-func 多次导入同名宠物时应持续递增后缀() throws {
+func repeatedDuplicateImportsContinueIncrementingSuffix() throws {
     let workspace = try makeWorkspace(named: "rename-imported-duplicate")
     let store = ImportedPetStore(baseDirectoryURL: workspace.importedPetsURL)
     let firstArchiveURL = try makePetArchive(

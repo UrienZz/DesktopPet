@@ -2,9 +2,10 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证启动时会恢复宠物动画暂停状态。
 @MainActor
 @Test
-func 启动时应恢复宠物动画暂停状态() {
+func launchRestoresPetAnimationPausedState() {
     let suiteName = "AppCoordinatorAnimationTests-\(UUID().uuidString)"
     let defaults = UserDefaults(suiteName: suiteName)!
     defer {
@@ -20,9 +21,10 @@ func 启动时应恢复宠物动画暂停状态() {
     #expect(coordinator.isPetAnimationPaused == true)
 }
 
+/// 验证切换动画暂停状态后会立即持久化。
 @MainActor
 @Test
-func 切换动画暂停状态后应立即持久化() {
+func togglingAnimationPausedStatePersistsImmediately() {
     let suiteName = "AppCoordinatorAnimationTests-\(UUID().uuidString)"
     let defaults = UserDefaults(suiteName: suiteName)!
     defer {
@@ -38,9 +40,10 @@ func 切换动画暂停状态后应立即持久化() {
     #expect(store.loadPetAnimationPaused() == true)
 }
 
+/// 验证点击空白关闭 Trello 后会恢复打开前的贴边位置与姿势。
 @MainActor
 @Test
-func 点击空白关闭Trello后应恢复打开前的贴边位置与姿势() {
+func blankClickClosingTrelloRestoresPreviousEdgePositionAndPose() {
     let coordinator = makeCoordinator()
     coordinator.start()
     coordinator.handlePetDragEnded(windowOrigin: CGPoint(x: 0, y: 320))
@@ -55,9 +58,10 @@ func 点击空白关闭Trello后应恢复打开前的贴边位置与姿势() {
     #expect(coordinator.currentPetPositionForTesting == originalPosition)
 }
 
+/// 验证关闭 Trello 窗口后会恢复打开前的贴边位置与姿势。
 @MainActor
 @Test
-func 关闭Trello窗口后应恢复打开前的贴边位置与姿势() {
+func closingTrelloWindowRestoresPreviousEdgePositionAndPose() {
     let coordinator = makeCoordinator()
     coordinator.start()
     coordinator.handlePetDragEnded(windowOrigin: CGPoint(x: 0, y: 320))
@@ -72,9 +76,10 @@ func 关闭Trello窗口后应恢复打开前的贴边位置与姿势() {
     #expect(coordinator.currentPetPositionForTesting == originalPosition)
 }
 
+/// 验证悬停延迟触发前不会进入打招呼姿势。
 @MainActor
 @Test
-func 悬停未触发延迟前不应进入打招呼姿势() {
+func hoverBeforeDelayDoesNotEnterGreetingPose() {
     let coordinator = makeCoordinator()
     coordinator.start()
 
@@ -83,9 +88,10 @@ func 悬停未触发延迟前不应进入打招呼姿势() {
     #expect(coordinator.currentForcedStateNameForTesting == nil)
 }
 
+/// 验证悬停延迟触发后进入打招呼姿势并在移出后恢复。
 @MainActor
 @Test
-func 悬停延迟触发后应进入打招呼姿势移出后恢复() {
+func hoverAfterDelayEntersGreetingPoseAndExitRestores() {
     let coordinator = makeCoordinator()
     coordinator.start()
 
@@ -97,9 +103,10 @@ func 悬停延迟触发后应进入打招呼姿势移出后恢复() {
     #expect(coordinator.currentForcedStateNameForTesting == nil)
 }
 
+/// 验证点击打开面板后会清除打招呼姿势并保持现有面板状态。
 @MainActor
 @Test
-func 点击打开面板后应清除打招呼姿势并保持现有面板状态() {
+func openingPanelClearsGreetingPoseAndKeepsPanelState() {
     let coordinator = makeCoordinator()
     coordinator.start()
 
@@ -113,9 +120,10 @@ func 点击打开面板后应清除打招呼姿势并保持现有面板状态() 
     #expect(coordinator.currentPetModeForTesting == .hovering)
 }
 
+/// 验证关闭面板后再次悬停仍会进入打招呼姿势。
 @MainActor
 @Test
-func 关闭面板后再次悬停仍应进入打招呼姿势() {
+func hoverStillEntersGreetingPoseAfterPanelCloses() {
     let coordinator = makeCoordinator()
     coordinator.start()
 

@@ -2,17 +2,19 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证拖拽开始且存在 drag 素材时会切换到 dragging。
 @MainActor
 @Test
-func 拖拽开始时有drag素材应切换到dragging() throws {
+func dragStartWithDragAssetSwitchesToDragging() throws {
     let pet = try loadAyaka()
 
     #expect(PetRenderView.dragRuntimeMode(for: pet, currentMode: .climbRight) == .dragging)
 }
 
+/// 验证拖拽开始但没有 drag 素材时保持当前动作。
 @MainActor
 @Test
-func 拖拽开始时无drag素材应保持当前动作() {
+func dragStartWithoutDragAssetKeepsCurrentPose() {
     let pet = PetDefinition(
         name: "Custom",
         imageSource: "media/custom.png",

@@ -2,8 +2,9 @@ import CoreGraphics
 import Testing
 @testable import DesktopPetApp
 
+/// 验证拖拽松手到底边时优先吸附到底边站立。
 @Test
-func 松手到底边时优先吸附到底边站立() throws {
+func releaseAtBottomSnapsToBottomIdle() throws {
     let controller = try makeRuntimeController()
     let screen = CGRect(x: 0, y: 0, width: 1200, height: 800)
     let petSize = CGSize(width: 128, height: 128)
@@ -15,8 +16,9 @@ func 松手到底边时优先吸附到底边站立() throws {
     #expect(abs(controller.currentPosition.y - screen.minY) < 0.001)
 }
 
+/// 验证拖拽松手到左边缘时进入左爬墙状态。
 @Test
-func 松手到左边时进入左爬墙() throws {
+func releaseAtLeftEdgeEntersLeftClimbing() throws {
     let controller = try makeRuntimeController()
     let screen = CGRect(x: 0, y: 0, width: 1200, height: 800)
     let petSize = CGSize(width: 128, height: 128)
@@ -28,8 +30,9 @@ func 松手到左边时进入左爬墙() throws {
     #expect(abs(controller.currentPosition.x - screen.minX) < 0.001)
 }
 
+/// 验证拖拽松手到右边缘时进入右爬墙状态。
 @Test
-func 松手到右边时进入右爬墙() throws {
+func releaseAtRightEdgeEntersRightClimbing() throws {
     let controller = try makeRuntimeController()
     let screen = CGRect(x: 0, y: 0, width: 1200, height: 800)
     let petSize = CGSize(width: 128, height: 128)
@@ -41,8 +44,9 @@ func 松手到右边时进入右爬墙() throws {
     #expect(abs(controller.currentPosition.x - (screen.maxX - petSize.width)) < 0.001)
 }
 
+/// 验证顶部松手时先进入下落再落地站立。
 @Test
-func 顶部松手时先下落再落地站立() throws {
+func releaseAtTopFallsBeforeLandingAtBottom() throws {
     let controller = try makeRuntimeController()
     let screen = CGRect(x: 0, y: 0, width: 1200, height: 800)
     let petSize = CGSize(width: 128, height: 128)
@@ -58,8 +62,9 @@ func 顶部松手时先下落再落地站立() throws {
     #expect(abs(controller.currentPosition.y - screen.minY) < 0.001)
 }
 
+/// 验证中间区域松手时自然下落到底边站立。
 @Test
-func 中间区域松手时自然下落到底边站立() throws {
+func releaseInMiddleFallsNaturallyToBottomIdle() throws {
     let controller = try makeRuntimeController()
     let screen = CGRect(x: 0, y: 0, width: 1200, height: 800)
     let petSize = CGSize(width: 128, height: 128)

@@ -2,8 +2,9 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证 framesize 模式可以解析帧尺寸与状态范围。
 @Test
-func 使用framesize解析帧尺寸与状态范围() throws {
+func frameSizeModeParsesFrameSizeAndStateRanges() throws {
     let pet = PetDefinition(
         name: "Ayaka",
         imageSource: "media/Ayaka.png",
@@ -27,8 +28,9 @@ func 使用framesize解析帧尺寸与状态范围() throws {
     #expect(range.upperBound == 71)
 }
 
+/// 验证 framesize 模式使用全局最大列数而不是当前状态帧数。
 @Test
-func framesize模式下应使用全局最大列数而不是当前状态帧数() throws {
+func frameSizeModeUsesGlobalMaxColumnsInsteadOfCurrentStateFrameCount() throws {
     let data = try Data(contentsOf: AppConstants.configDirectoryURL.appendingPathComponent("ayaka.json"))
     let pet = try JSONDecoder().decode(PetDefinition.self, from: data)
 
@@ -43,9 +45,10 @@ func framesize模式下应使用全局最大列数而不是当前状态帧数() 
     #expect(climbRange.lowerBound == 64)
 }
 
+/// 验证裁切坐标从底部开始计算而不是从顶部反转。
 @Test
 @MainActor
-func 裁切坐标应从底部开始计算而不是从顶部反转() {
+func croppingCoordinatesStartFromBottomInsteadOfTopReversal() {
     let rect = PetRenderView.cropRect(
         frameIndex: 0,
         imageWidth: 1024,
@@ -60,8 +63,9 @@ func 裁切坐标应从底部开始计算而不是从顶部反转() {
     #expect(rect.height == 128)
 }
 
+/// 验证推导尺寸模式可以通过起止帧解析状态范围。
 @Test
-func 使用推导尺寸和起止帧解析状态范围() throws {
+func inferredSizeModeParsesStateRangesFromStartAndEndFrames() throws {
     let pet = PetDefinition(
         name: "Custom",
         imageSource: "media/custom.png",

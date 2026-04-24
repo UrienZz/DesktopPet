@@ -2,9 +2,10 @@ import Foundation
 import Testing
 @testable import DesktopPetApp
 
+/// 验证打开插件面板时默认选择排序第一且启用的插件。
 @MainActor
 @Test
-func 打开插件面板时应默认选择排序第一且启用的插件() throws {
+func openingPluginPanelSelectsFirstEnabledPluginBySortOrder() throws {
     let coordinator = makeCoordinator()
     let plugins = [
         PluginConfiguration(
@@ -32,9 +33,10 @@ func 打开插件面板时应默认选择排序第一且启用的插件() throws
     #expect(coordinator.selectedPanelPluginForTesting?.name == "GitHub")
 }
 
+/// 验证全部插件禁用时插件面板展示空状态。
 @MainActor
 @Test
-func 全部禁用时插件面板应展示空状态() throws {
+func pluginPanelShowsEmptyStateWhenAllPluginsDisabled() throws {
     let coordinator = makeCoordinator()
     let plugins = [
         PluginConfiguration(
@@ -55,9 +57,10 @@ func 全部禁用时插件面板应展示空状态() throws {
     #expect(coordinator.isPluginPanelEmptyForTesting)
 }
 
+/// 验证插件列表为空时插件面板展示空状态。
 @MainActor
 @Test
-func 空列表时插件面板应展示空状态() throws {
+func pluginPanelShowsEmptyStateWhenPluginListIsEmpty() throws {
     let coordinator = makeCoordinator()
     try coordinator.pluginStoreForTesting.savePlugins([])
     coordinator.start()
