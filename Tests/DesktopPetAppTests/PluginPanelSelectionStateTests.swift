@@ -24,9 +24,9 @@ func selectingLoadedPluginAgainDoesNotRepeatLoadingState() {
     let second = makePlugin(name: "GitHub", url: "https://github.com")
 
     state.syncSelection(availablePlugins: [first, second], preferredPluginID: first.id)
-    state.markFinishedLoading(pluginID: first.id, url: first.url)
+    state.markFinishedLoading(pluginID: first.id, requestedURL: first.url)
     state.syncSelection(availablePlugins: [first, second], preferredPluginID: second.id)
-    state.markFinishedLoading(pluginID: second.id, url: second.url)
+    state.markFinishedLoading(pluginID: second.id, requestedURL: second.url)
 
     state.syncSelection(availablePlugins: [first, second], preferredPluginID: first.id)
 
@@ -50,11 +50,40 @@ func pluginURLChangeReentersLoadingState() {
     )
 
     state.syncSelection(availablePlugins: [original], preferredPluginID: original.id)
-    state.markFinishedLoading(pluginID: original.id, url: original.url)
+    state.markFinishedLoading(pluginID: original.id, requestedURL: original.url)
     state.syncSelection(availablePlugins: [updated], preferredPluginID: updated.id)
 
     #expect(state.selectedPluginID == updated.id)
     #expect(state.isLoading)
+}
+
+/// 验证网页主文档开始呈现后会退出遮罩加载态，避免 OAuth 页面被遮挡。
+@MainActor
+@Test
+func committedNavigationExitsBlockingLoadingState() {
+    let state = PluginPanelSelectionState()
+    let plugin = makePlugin(name: "Trello", url: "https://trello.com")
+
+    state.syncSelection(availablePlugins: [plugin], preferredPluginID: plugin.id)
+    state.markStartedLoading(pluginID: plugin.id)
+    state.markCommittedLoading(pluginID: plugin.id, requestedURL: plugin.url)
+
+    #expect(!state.isLoading)
+}
+
+/// 验证 OAuth 内部跳转后重新同步选中项时不会误判为插件初始地址未加载。
+@MainActor
+@Test
+func committedPluginURLKeepsOAuthRedirectsFromReenteringLoadingState() {
+    let state = PluginPanelSelectionState()
+    let plugin = makePlugin(name: "Trello", url: "https://trello.com")
+
+    state.syncSelection(availablePlugins: [plugin], preferredPluginID: plugin.id)
+    state.markStartedLoading(pluginID: plugin.id)
+    state.markCommittedLoading(pluginID: plugin.id, requestedURL: plugin.url)
+    state.syncSelection(availablePlugins: [plugin], preferredPluginID: plugin.id)
+
+    #expect(!state.isLoading)
 }
 
 @MainActor

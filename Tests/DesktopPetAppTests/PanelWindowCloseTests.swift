@@ -14,3 +14,14 @@ func closingPluginPanelWindowTriggersCloseCallback() {
 
     #expect(didClose)
 }
+
+/// 验证插件面板具备浏览器式交互窗口语义，支持复杂网页拖拽。
+@MainActor
+@Test
+func pluginPanelWindowSupportsBrowserLikePointerInteractions() {
+    let window = PanelWindow(rootView: PluginEmptyStateView())
+
+    #expect(window.canBecomeKey)
+    #expect(window.canBecomeMain)
+    #expect(window.acceptsMouseMovedEvents)
+}

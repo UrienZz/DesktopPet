@@ -37,8 +37,15 @@ final class PluginPanelSelectionState: ObservableObject {
         isLoading = true
     }
 
-    func markFinishedLoading(pluginID: UUID, url: URL) {
-        loadedURLsByPluginID[pluginID] = url
+    func markCommittedLoading(pluginID: UUID, requestedURL: URL) {
+        loadedURLsByPluginID[pluginID] = requestedURL
+
+        guard selectedPluginID == pluginID else { return }
+        isLoading = false
+    }
+
+    func markFinishedLoading(pluginID: UUID, requestedURL: URL) {
+        loadedURLsByPluginID[pluginID] = requestedURL
 
         guard selectedPluginID == pluginID else { return }
         isLoading = false

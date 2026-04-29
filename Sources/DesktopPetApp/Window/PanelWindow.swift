@@ -23,6 +23,7 @@ final class PanelWindow: NSPanel, NSWindowDelegate {
         isReleasedWhenClosed = false
         level = .floating
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        acceptsMouseMovedEvents = true
         contentView = NSHostingView(rootView: rootView)
         delegate = self
     }
@@ -48,4 +49,6 @@ final class PanelWindow: NSPanel, NSWindowDelegate {
 
         return super.performKeyEquivalent(with: event)
     }
+
+    override var canBecomeMain: Bool { true }
 }

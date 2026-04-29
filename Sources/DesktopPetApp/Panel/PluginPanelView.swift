@@ -71,8 +71,11 @@ struct PluginPanelView: View {
                         onLoadStart: { pluginID in
                             selectionState.markStartedLoading(pluginID: pluginID)
                         },
-                        onLoadFinish: { pluginID, url in
-                            selectionState.markFinishedLoading(pluginID: pluginID, url: url)
+                        onLoadCommit: { pluginID, requestedURL in
+                            selectionState.markCommittedLoading(pluginID: pluginID, requestedURL: requestedURL)
+                        },
+                        onLoadFinish: { pluginID, requestedURL in
+                            selectionState.markFinishedLoading(pluginID: pluginID, requestedURL: requestedURL)
                         },
                         onLoadFail: { pluginID in
                             selectionState.markFailedLoading(pluginID: pluginID)
