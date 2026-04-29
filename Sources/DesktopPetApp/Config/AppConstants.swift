@@ -12,6 +12,7 @@ enum AppConstants {
     static let defaultBottomInset: Double = 0
     static let snapThreshold: Double = 96
     static let panelSize = CGSize(width: 900, height: 640)
+    static let settingsWindowSize = CGSize(width: 900, height: 640)
     static let petHoverGreetingDelayNanoseconds: UInt64 = 500_000_000
     static let selectedPetDefaultsKey = "selectedPetName"
     static let petScaleDefaultsKey = "petScale"

@@ -18,15 +18,15 @@ struct SettingsSidebarItemAppearance: Equatable {
 
         switch (isSelected, isHovered) {
         case (true, true):
-            backgroundOpacity = 0.26
+            backgroundOpacity = 1
             borderOpacity = 0.24
-            iconTileOpacity = 0.28
+            iconTileOpacity = 0.18
             indicatorOpacity = 1
             shadowOpacity = 0.14
         case (true, false):
-            backgroundOpacity = 0.22
+            backgroundOpacity = 1
             borderOpacity = 0.2
-            iconTileOpacity = 0.24
+            iconTileOpacity = 0.16
             indicatorOpacity = 0.92
             shadowOpacity = 0.11
         case (false, true):
@@ -59,29 +59,29 @@ enum SettingsCardProminence {
     case featured
 }
 
+enum SettingsSidebarLayout {
+    static let width: CGFloat = 260
+    static let outerPadding: CGFloat = 12
+    static let containerWidth: CGFloat = width + (outerPadding * 2)
+    static let horizontalPadding: CGFloat = 22
+    static let topPadding: CGFloat = 112
+    static let panelCornerRadius: CGFloat = 30
+    static let panelShadowRadius: CGFloat = 26
+    static let panelBackgroundOpacity: Double = 0.36
+    static let panelShadowOpacity: Double = 0.08
+    static let rowSpacing: CGFloat = 12
+    static let rowHorizontalPadding: CGFloat = 14
+    static let rowVerticalPadding: CGFloat = 12
+    static let rowCornerRadius: CGFloat = 14
+    static let iconSize: CGFloat = 32
+    static let iconCornerRadius: CGFloat = 10
+    static let titleFontSize: CGFloat = 16
+}
+
 struct SettingsPageBackground: View {
     var body: some View {
-        LinearGradient(
-            colors: [
-                Color(nsColor: .windowBackgroundColor),
-                Color(nsColor: .underPageBackgroundColor).opacity(0.96),
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .overlay(alignment: .topLeading) {
-            RadialGradient(
-                colors: [
-                    Color.accentColor.opacity(0.12),
-                    .clear,
-                ],
-                center: .topLeading,
-                startRadius: 20,
-                endRadius: 380
-            )
-            .frame(width: 520, height: 420)
-        }
-        .ignoresSafeArea()
+        Color(nsColor: .windowBackgroundColor)
+            .ignoresSafeArea()
     }
 }
 
@@ -114,55 +114,19 @@ struct SettingsInfoPill: View {
     }
 }
 
-struct SettingsHeroCard<Accessory: View, Actions: View>: View {
-    let eyebrow: String
+struct SettingsPageHeader: View {
     let title: String
-    let subtitle: String
-    @ViewBuilder let accessory: Accessory
-    @ViewBuilder let actions: Actions
 
     var body: some View {
-        HStack(alignment: .top, spacing: 18) {
-            VStack(alignment: .leading, spacing: 14) {
-                Text(eyebrow)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
+        HStack {
+            Text(title)
+                .font(.system(size: 28, weight: .bold))
+                .foregroundStyle(.primary)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(title)
-                        .font(.system(size: 32, weight: .bold))
-                    Text(subtitle)
-                        .font(.system(size: 14))
-                        .foregroundStyle(.secondary)
-                }
-
-                actions
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            accessory
-                .frame(minWidth: 220, alignment: .trailing)
+            Spacer()
         }
-        .padding(24)
-        .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.92),
-                            Color.white.opacity(0.8),
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.75), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.07), radius: 24, y: 14)
+        .padding(.top, 4)
+        .padding(.bottom, 8)
     }
 }
 
@@ -173,9 +137,8 @@ struct SettingsSectionCard<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        let backgroundOpacity = prominence == .featured ? 0.9 : 0.78
-        let borderOpacity = prominence == .featured ? 0.12 : 0.08
-        let shadowOpacity = prominence == .featured ? 0.08 : 0.05
+        let backgroundOpacity = prominence == .featured ? 0.86 : 0.76
+        let borderOpacity = prominence == .featured ? 0.1 : 0.06
 
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
@@ -192,18 +155,13 @@ struct SettingsSectionCard<Content: View>: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(Color.white.opacity(backgroundOpacity))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.72), lineWidth: 1)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .strokeBorder(Color.black.opacity(borderOpacity), lineWidth: 0.6)
         )
-        .shadow(color: .black.opacity(shadowOpacity), radius: 18, y: 10)
     }
 }
 
@@ -256,52 +214,36 @@ struct SettingsSidebarPaneButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.accentColor.opacity(appearance.indicatorOpacity))
-                    .frame(width: 4, height: 32)
-
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.accentColor.opacity(appearance.iconTileOpacity))
-                    .frame(width: 34, height: 34)
+                RoundedRectangle(cornerRadius: SettingsSidebarLayout.iconCornerRadius, style: .continuous)
+                    .fill(isSelected ? Color.white.opacity(appearance.iconTileOpacity) : Color.accentColor.opacity(appearance.iconTileOpacity))
+                    .frame(width: SettingsSidebarLayout.iconSize, height: SettingsSidebarLayout.iconSize)
                     .overlay {
                         Image(systemName: pane.systemImage)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(isSelected ? Color.accentColor : Color.primary.opacity(isHovered ? 0.82 : 0.66))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(isSelected ? Color.white : Color.primary.opacity(isHovered ? 0.82 : 0.66))
                     }
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(pane.title)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(isSelected ? Color.primary : Color.primary.opacity(isHovered ? 0.92 : 0.8))
+                Text(pane.title)
+                    .font(.system(size: SettingsSidebarLayout.titleFontSize, weight: .semibold))
+                    .foregroundStyle(isSelected ? Color.white : Color.primary.opacity(isHovered ? 0.92 : 0.8))
 
-                    Text(pane.sidebarSubtitle)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(isSelected ? Color.accentColor : .secondary)
-                        .lineLimit(1)
-                }
-
-                Spacer(minLength: 10)
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(isSelected ? Color.accentColor : .secondary.opacity(isHovered ? 0.8 : 0.44))
-                    .offset(x: isHovered ? 1.5 : 0)
+                Spacer(minLength: 8)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, SettingsSidebarLayout.rowHorizontalPadding)
+            .padding(.vertical, SettingsSidebarLayout.rowVerticalPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(Color.accentColor.opacity(appearance.backgroundOpacity))
+                RoundedRectangle(cornerRadius: SettingsSidebarLayout.rowCornerRadius, style: .continuous)
+                    .fill(isSelected ? Color.accentColor : Color.accentColor.opacity(appearance.backgroundOpacity))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                RoundedRectangle(cornerRadius: SettingsSidebarLayout.rowCornerRadius, style: .continuous)
                     .strokeBorder(Color.accentColor.opacity(appearance.borderOpacity), lineWidth: 1)
             )
             .shadow(color: .black.opacity(appearance.shadowOpacity), radius: isHovered ? 12 : 8, y: isHovered ? 6 : 4)
         }
         .buttonStyle(SettingsSidebarButtonStyle(isSelected: isSelected, isHovered: isHovered))
-        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: SettingsSidebarLayout.rowCornerRadius, style: .continuous))
         .onHover(perform: updateHoverState)
         .onDisappear {
             if isPointerActive {

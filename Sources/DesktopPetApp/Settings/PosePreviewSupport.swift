@@ -68,6 +68,8 @@ enum PosePreviewLayout {
     static let cardDimension: CGFloat = 240
     static let contentMaxDimension: CGFloat = 208
     static let minCardDimension: CGFloat = 160
+    static let compactControlsWidth: CGFloat = 360
+    static let pickerMinimumWidth: CGFloat = 170
 
     static func renderScale(
         for pet: PetDefinition,

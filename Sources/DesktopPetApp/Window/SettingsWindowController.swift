@@ -9,14 +9,14 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         self.onClose = onClose
 
         let window = EditingShortcutWindow(
-            contentRect: CGRect(x: 0, y: 0, width: 960, height: 720),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            contentRect: CGRect(origin: .zero, size: AppConstants.settingsWindowSize),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
         window.title = "Desktop Pet 设置"
         window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = false
+        window.titlebarAppearsTransparent = true
         window.toolbar = nil
         window.center()
         window.contentView = NSHostingView(rootView: rootView)

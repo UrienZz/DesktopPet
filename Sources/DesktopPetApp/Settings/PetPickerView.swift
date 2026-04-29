@@ -27,10 +27,6 @@ struct PetPickerView: View {
                 .pickerStyle(.menu)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-
-            Text("切换后会立即同步到桌面上的当前宠物。")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
         }
     }
 }

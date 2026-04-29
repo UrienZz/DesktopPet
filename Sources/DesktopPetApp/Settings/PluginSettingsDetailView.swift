@@ -15,27 +15,17 @@ struct PluginSettingsDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                SettingsHeroCard(
-                    eyebrow: "Plugin Workspace",
-                    title: "插件",
-                    subtitle: "管理网页插件、拖拽排序，并配置点击宠物后展开的面板内容。",
-                    accessory: {
-                        VStack(alignment: .leading, spacing: 10) {
-                            SettingsInfoPill(label: "插件总数", value: "\(coordinator.plugins.count)")
-                            SettingsInfoPill(label: "已启用", value: "\(coordinator.plugins.filter(\.isEnabled).count)")
-                        }
-                    },
-                    actions: {
-                        Button("新增插件", action: coordinator.addPlugin)
-                            .buttonStyle(SettingsActionButtonStyle(tint: .accentColor, graysWhenInactive: true))
-                    }
-                )
+                SettingsPageHeader(title: "插件")
+
+                HStack {
+                    Button("新增插件", action: coordinator.addPlugin)
+                        .buttonStyle(SettingsActionButtonStyle(tint: .accentColor, graysWhenInactive: true))
+                    Spacer()
+                }
+                .padding(.top, -10)
 
                 HStack(alignment: .top, spacing: 20) {
-                    SettingsSectionCard(
-                        title: "插件列表",
-                        subtitle: "左侧用于选择与拖拽排序，支持 hover 高亮与手型提示。"
-                    ) {
+                    SettingsSectionCard(title: "插件列表") {
                         PluginListView(
                             plugins: coordinator.plugins,
                             selectedPluginID: coordinator.selectedPluginID,
@@ -45,11 +35,10 @@ struct PluginSettingsDetailView: View {
                             onAdd: coordinator.addPlugin
                         )
                     }
-                    .frame(width: 340)
+                    .frame(width: 300)
 
                     SettingsSectionCard(
                         title: "插件配置",
-                        subtitle: "配置名称、网址、图标与启用状态。",
                         prominence: .featured
                     ) {
                         PluginEditorView(
@@ -67,7 +56,7 @@ struct PluginSettingsDetailView: View {
                     .frame(maxWidth: .infinity)
                 }
             }
-            .padding(28)
+            .padding(24)
         }
         .scrollIndicators(.visible)
         .onAppear(perform: syncDraftFromSelection)
@@ -300,9 +289,6 @@ private struct PluginEditorView: View {
                         .buttonStyle(SettingsActionButtonStyle(tint: .red))
                 }
 
-                Text("排序通过左侧列表中的三横杠拖拽把手完成。")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
             }
         } else {
             VStack(alignment: .leading, spacing: 10) {

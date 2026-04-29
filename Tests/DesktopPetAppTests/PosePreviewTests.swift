@@ -61,3 +61,10 @@ func posePreviewCanvasSizeIsConstrainedByAvailableSpace() {
     #expect(compact == 188)
     #expect(roomy == PosePreviewLayout.cardDimension)
 }
+
+/// 验证姿势选择控件在紧凑宽度下有稳定的最小可读宽度。
+@Test
+func posePreviewPickerUsesReadableCompactWidth() {
+    #expect(PosePreviewLayout.compactControlsWidth == 360)
+    #expect(PosePreviewLayout.pickerMinimumWidth == 170)
+}

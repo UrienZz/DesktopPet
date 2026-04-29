@@ -18,31 +18,20 @@ struct PosePreviewView: View {
             )
             let previewContentSize = resolvedPreviewContentSize(cardDimension: previewCardDimension)
             let previewRenderScale = resolvedPreviewRenderScale(cardDimension: previewCardDimension)
+            let usesCompactControls = proxy.size.width < PosePreviewLayout.compactControlsWidth
 
             VStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 14) {
-                    HStack(alignment: .top, spacing: 14) {
+                    if usesCompactControls {
                         SettingsInfoPill(label: "当前姿势", value: currentPoseTitle)
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("姿势选择")
-                                .font(.system(size: 13, weight: .semibold))
-                            Picker("姿势", selection: Binding(
-                                get: { selectedState },
-                                set: { onSelectState($0) }
-                            )) {
-                                ForEach(previewOptions, id: \.id) { option in
-                                    Text(option.title).tag(option.id)
-                                }
-                            }
-                            .pickerStyle(.menu)
                             .frame(maxWidth: .infinity, alignment: .leading)
+                        posePicker
+                    } else {
+                        HStack(alignment: .top, spacing: 14) {
+                            SettingsInfoPill(label: "当前姿势", value: currentPoseTitle)
+                            posePicker
                         }
                     }
-
-                    Text("左爬墙会自动使用右爬墙镜像；预览尺寸会跟随当前缩放同步调整。")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
                 }
 
                 Spacer(minLength: 0)
@@ -62,6 +51,23 @@ struct PosePreviewView: View {
 
     private var currentPoseTitle: String {
         previewOptions.first(where: { $0.id == selectedState })?.title ?? "未选择"
+    }
+
+    private var posePicker: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("姿势选择")
+                .font(.system(size: 13, weight: .semibold))
+            Picker("姿势", selection: Binding(
+                get: { selectedState },
+                set: { onSelectState($0) }
+            )) {
+                ForEach(previewOptions, id: \.id) { option in
+                    Text(option.title).tag(option.id)
+                }
+            }
+            .pickerStyle(.menu)
+            .frame(minWidth: PosePreviewLayout.pickerMinimumWidth, maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     private func resolvedPreviewCardDimension(availableWidth: CGFloat, availableHeight: CGFloat) -> CGFloat {

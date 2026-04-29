@@ -30,10 +30,6 @@ struct SizeControlView: View {
             }
             .font(.system(size: 11, weight: .medium))
             .foregroundStyle(.secondary)
-
-            Text("调整后会即时同步到桌面宠物与预览区域。")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
         }
     }
 }
